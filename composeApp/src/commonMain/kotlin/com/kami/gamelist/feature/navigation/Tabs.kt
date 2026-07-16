@@ -18,6 +18,7 @@ import com.kami.gamelist.feature.home.HomeScreenModel
 import com.kami.gamelist.feature.search.SearchScreen
 import com.kami.gamelist.feature.search.SearchScreenModel
 import com.kami.gamelist.feature.favorites.FavoritesScreen
+import com.kami.gamelist.feature.favorites.FavoritesScreenModel
 import com.kami.gamelist.feature.lists.ListsScreen
 
 private class HomeWrapperScreen : Screen {
@@ -39,7 +40,8 @@ private class SearchWrapperScreen : Screen {
 private class FavoritesWrapperScreen : Screen {
     @Composable
     override fun Content() {
-        FavoritesScreen()
+        val screenModel = koinScreenModel<FavoritesScreenModel>()
+        FavoritesScreen(screenModel)
     }
 }
 

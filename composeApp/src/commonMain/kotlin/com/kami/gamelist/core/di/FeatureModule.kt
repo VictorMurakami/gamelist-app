@@ -1,10 +1,7 @@
 package com.kami.gamelist.core.di
 
-// TODO: Uncomment each ScreenModel import and factory as its feature task is implemented (Tasks 9-13)
 import com.kami.gamelist.feature.detail.GameDetailScreenModel
-// import com.kami.gamelist.feature.favorites.FavoritesScreenModel
-// import com.kami.gamelist.feature.lists.ListDetailScreenModel
-// import com.kami.gamelist.feature.lists.ListsScreenModel
+import com.kami.gamelist.feature.favorites.FavoritesScreenModel
 import com.kami.gamelist.feature.search.SearchScreenModel
 import com.kami.gamelist.core.network.ConnectivityMonitor
 import com.kami.gamelist.feature.home.HomeScreenModel
@@ -20,8 +17,8 @@ val featureModule = module {
     // Task 11 - Game Detail Feature
     factory { params -> GameDetailScreenModel(params.get(), get(), get()) }
 
-    // TODO: Task 12 - Favorites Feature
-    // factory { FavoritesScreenModel(get()) }
+    // Task 12 - Favorites Feature
+    factory { FavoritesScreenModel(get()) }
 
     // TODO: Task 13 - Lists Feature
     // factory { ListsScreenModel(get()) }
