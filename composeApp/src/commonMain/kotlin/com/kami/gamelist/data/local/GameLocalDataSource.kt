@@ -72,7 +72,7 @@ class GameLocalDataSource(private val database: GameListDatabase) {
     fun upsertGames(games: List<Game>) {
         database.transaction {
             games.forEach { game ->
-                gameQueries.upsert(
+                gameQueries.upsertFromList(
                     id = game.id.toLong(),
                     title = game.title,
                     thumbnail = game.thumbnail,
@@ -83,14 +83,7 @@ class GameLocalDataSource(private val database: GameListDatabase) {
                     publisher = game.publisher,
                     developer = game.developer,
                     release_date = game.releaseDate,
-                    freetogame_profile_url = game.freetogameProfileUrl,
-                    description = null,
-                    status = null,
-                    min_req_os = null,
-                    min_req_processor = null,
-                    min_req_memory = null,
-                    min_req_graphics = null,
-                    min_req_storage = null
+                    freetogame_profile_url = game.freetogameProfileUrl
                 )
             }
         }
@@ -100,7 +93,7 @@ class GameLocalDataSource(private val database: GameListDatabase) {
         database.transaction {
             val game = detail.game
             val reqs = detail.minimumSystemRequirements
-            gameQueries.upsert(
+            gameQueries.upsertDetail(
                 id = game.id.toLong(),
                 title = game.title,
                 thumbnail = game.thumbnail,

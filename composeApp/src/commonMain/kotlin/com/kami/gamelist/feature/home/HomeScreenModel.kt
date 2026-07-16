@@ -64,9 +64,7 @@ class HomeScreenModel(
         _selectedPlatform.value = platform
     }
 
-    fun refresh() {
-        screenModelScope.launch {
-            gameRepository.refreshGames()
-        }
+    suspend fun refresh() {
+        gameRepository.refreshGames()
     }
 }

@@ -6,7 +6,6 @@ import com.kami.gamelist.data.model.Game
 import com.kami.gamelist.data.model.GameDetail
 import com.kami.gamelist.data.remote.FreeToGameApi
 import com.kami.gamelist.data.remote.toDomain
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -53,6 +52,10 @@ class GameRepository(
 
     suspend fun refreshGames() {
         syncGames()
+    }
+
+    suspend fun refreshGameDetail(id: Int) {
+        syncGameDetail(id)
     }
 
     private suspend fun syncGames() {

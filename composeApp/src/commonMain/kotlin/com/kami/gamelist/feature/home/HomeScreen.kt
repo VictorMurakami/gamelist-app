@@ -16,9 +16,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.kami.gamelist.core.ui.UiState
@@ -39,6 +41,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
     val selectedPlatform: String? by screenModel.selectedPlatform.collectAsState()
     val isOffline: Boolean by screenModel.isOffline.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
         OfflineBanner(isOffline = isOffline)
@@ -57,7 +60,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
             is UiState.Error -> {
                 ErrorState(
                     message = state.message,
-                    onRetry = { screenModel.refresh() }
+                    onRetry = { scope.launch { screenModel.refresh() } }
                 )
             }
 
@@ -94,9 +97,11 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                     PullToRefreshBox(
                         isRefreshing = isRefreshing,
                         onRefresh = {
-                            isRefreshing = true
-                            screenModel.refresh()
-                            isRefreshing = false
+                            scope.launch {
+                                isRefreshing = true
+                                screenModel.refresh()
+                                isRefreshing = false
+                            }
                         },
                         modifier = Modifier.fillMaxSize()
                     ) {

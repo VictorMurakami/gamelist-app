@@ -28,15 +28,6 @@ fun FavoriteButton(
     modifier: Modifier = Modifier,
     tint: Color = if (isFavorite) Color(0xFFFF4081) else MaterialTheme.colorScheme.onSurfaceVariant
 ) {
-    val scale by animateFloatAsState(
-        targetValue = if (isFavorite) 1.0f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "favorite_scale"
-    )
-
     var wasClicked by remember { mutableStateOf(false) }
     val clickScale by animateFloatAsState(
         targetValue = if (wasClicked) 1.3f else 1.0f,
@@ -54,7 +45,7 @@ fun FavoriteButton(
         tint = tint,
         modifier = modifier
             .size(28.dp)
-            .scale(scale * clickScale)
+            .scale(clickScale)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null

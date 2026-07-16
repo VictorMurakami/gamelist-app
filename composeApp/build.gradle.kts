@@ -120,6 +120,7 @@ sqldelight {
     databases {
         create("GameListDatabase") {
             packageName.set("com.kami.gamelist.db")
+            dialect(libs.sqldelight.dialect)
         }
     }
 }

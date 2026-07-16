@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -38,8 +41,28 @@ class GameDetailScreenModel(
         .observeLists()
         .stateIn(screenModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val listsContainingGame: StateFlow<Set<Long>> = lists
+        .flatMapLatest { allLists ->
+            if (allLists.isEmpty()) flowOf(emptySet())
+            else {
+                val flows = allLists.map { list ->
+                    userRepository.isInList(list.id, gameId).map { isIn ->
+                        if (isIn) list.id else null
+                    }
+                }
+                combine(flows) { results -> results.filterNotNull().toSet() }
+            }
+        }
+        .stateIn(screenModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     private val _showListSelector = MutableStateFlow(false)
     val showListSelector: StateFlow<Boolean> = _showListSelector.asStateFlow()
+
+    fun retry() {
+        screenModelScope.launch {
+            gameRepository.refreshGameDetail(gameId)
+        }
+    }
 
     fun toggleFavorite() {
         userRepository.toggleFavorite(gameId)

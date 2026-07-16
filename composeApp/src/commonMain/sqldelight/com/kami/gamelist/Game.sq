@@ -38,7 +38,24 @@ SELECT * FROM GameEntity WHERE genre = ? AND platform LIKE '%' || ? || '%' ORDER
 searchByTitle:
 SELECT * FROM GameEntity WHERE title LIKE '%' || ? || '%' ORDER BY title ASC;
 
-upsert:
+upsertFromList:
+INSERT INTO GameEntity(
+    id, title, thumbnail, short_description, game_url, genre, platform,
+    publisher, developer, release_date, freetogame_profile_url
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    title = excluded.title,
+    thumbnail = excluded.thumbnail,
+    short_description = excluded.short_description,
+    game_url = excluded.game_url,
+    genre = excluded.genre,
+    platform = excluded.platform,
+    publisher = excluded.publisher,
+    developer = excluded.developer,
+    release_date = excluded.release_date,
+    freetogame_profile_url = excluded.freetogame_profile_url;
+
+upsertDetail:
 INSERT OR REPLACE INTO GameEntity(
     id, title, thumbnail, short_description, game_url, genre, platform,
     publisher, developer, release_date, freetogame_profile_url,

@@ -53,6 +53,7 @@ data class GameDetailNavScreen(val gameId: Int) : Screen {
         val uiState by screenModel.uiState.collectAsState()
         val isFavorite by screenModel.isFavorite.collectAsState()
         val lists by screenModel.lists.collectAsState()
+        val listsContainingGame by screenModel.listsContainingGame.collectAsState()
         val showListSelector by screenModel.showListSelector.collectAsState()
 
         Scaffold(
@@ -98,7 +99,7 @@ data class GameDetailNavScreen(val gameId: Int) : Screen {
                 is UiState.Error -> {
                     ErrorState(
                         message = state.message,
-                        onRetry = { },
+                        onRetry = { screenModel.retry() },
                         modifier = Modifier.padding(padding)
                     )
                 }
@@ -209,7 +210,7 @@ data class GameDetailNavScreen(val gameId: Int) : Screen {
             if (showListSelector) {
                 ListSelector(
                     lists = lists,
-                    listsContainingGame = emptySet(),
+                    listsContainingGame = listsContainingGame,
                     onListToggle = { screenModel.toggleList(it) },
                     onDismiss = { screenModel.onDismissListSelector() }
                 )
