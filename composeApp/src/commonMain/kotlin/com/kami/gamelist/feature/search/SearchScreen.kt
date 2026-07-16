@@ -11,12 +11,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.kami.gamelist.core.ui.components.EmptyState
+import com.kami.gamelist.feature.detail.GameDetailNavScreen
 import com.kami.gamelist.core.ui.components.GameGrid
 import com.kami.gamelist.core.ui.components.GameSearchBar
 
 @Composable
 fun SearchScreen(screenModel: SearchScreenModel) {
+    val navigator = LocalNavigator.currentOrThrow
     val query by screenModel.query.collectAsState()
     val results by screenModel.searchResults.collectAsState()
     val recentSearches by screenModel.recentSearches.collectAsState()
@@ -46,7 +50,7 @@ fun SearchScreen(screenModel: SearchScreenModel) {
         } else if (results.isNotEmpty()) {
             GameGrid(
                 games = results,
-                onGameClick = { /* TODO: navigate to detail */ }
+                onGameClick = { game -> navigator.push(GameDetailNavScreen(game.id)) }
             )
         }
     }

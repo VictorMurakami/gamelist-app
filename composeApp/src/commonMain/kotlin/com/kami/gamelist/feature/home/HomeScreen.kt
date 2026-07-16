@@ -19,7 +19,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.kami.gamelist.core.ui.UiState
+import com.kami.gamelist.feature.detail.GameDetailNavScreen
 import com.kami.gamelist.core.ui.components.EmptyState
 import com.kami.gamelist.core.ui.components.ErrorState
 import com.kami.gamelist.core.ui.components.FilterChipRow
@@ -30,6 +33,7 @@ import com.kami.gamelist.core.ui.components.OfflineBanner
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(screenModel: HomeScreenModel) {
+    val navigator = LocalNavigator.currentOrThrow
     val uiState: UiState<HomeData> by screenModel.uiState.collectAsState()
     val selectedGenre: String? by screenModel.selectedGenre.collectAsState()
     val selectedPlatform: String? by screenModel.selectedPlatform.collectAsState()
@@ -98,7 +102,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                     ) {
                         GameGrid(
                             games = data.games,
-                            onGameClick = { /* TODO: navigate to detail */ }
+                            onGameClick = { game -> navigator.push(GameDetailNavScreen(game.id)) }
                         )
                     }
                 }

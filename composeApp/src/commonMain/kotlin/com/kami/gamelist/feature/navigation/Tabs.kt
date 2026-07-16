@@ -1,18 +1,16 @@
 package com.kami.gamelist.feature.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.kami.gamelist.feature.home.HomeScreen
@@ -21,6 +19,36 @@ import com.kami.gamelist.feature.search.SearchScreen
 import com.kami.gamelist.feature.search.SearchScreenModel
 import com.kami.gamelist.feature.favorites.FavoritesScreen
 import com.kami.gamelist.feature.lists.ListsScreen
+
+private class HomeWrapperScreen : Screen {
+    @Composable
+    override fun Content() {
+        val screenModel = koinScreenModel<HomeScreenModel>()
+        HomeScreen(screenModel)
+    }
+}
+
+private class SearchWrapperScreen : Screen {
+    @Composable
+    override fun Content() {
+        val screenModel = koinScreenModel<SearchScreenModel>()
+        SearchScreen(screenModel)
+    }
+}
+
+private class FavoritesWrapperScreen : Screen {
+    @Composable
+    override fun Content() {
+        FavoritesScreen()
+    }
+}
+
+private class ListsWrapperScreen : Screen {
+    @Composable
+    override fun Content() {
+        ListsScreen()
+    }
+}
 
 object HomeTab : Tab {
     override val options: TabOptions
@@ -31,8 +59,7 @@ object HomeTab : Tab {
 
     @Composable
     override fun Content() {
-        val screenModel = koinScreenModel<HomeScreenModel>()
-        HomeScreen(screenModel)
+        Navigator(HomeWrapperScreen())
     }
 }
 
@@ -45,8 +72,7 @@ object SearchTab : Tab {
 
     @Composable
     override fun Content() {
-        val screenModel = koinScreenModel<SearchScreenModel>()
-        SearchScreen(screenModel)
+        Navigator(SearchWrapperScreen())
     }
 }
 
@@ -59,19 +85,19 @@ object FavoritesTab : Tab {
 
     @Composable
     override fun Content() {
-        FavoritesScreen()
+        Navigator(FavoritesWrapperScreen())
     }
 }
 
 object ListsTab : Tab {
     override val options: TabOptions
         @Composable get() {
-            val icon = rememberVectorPainter(Icons.Outlined.List)
+            val icon = rememberVectorPainter(Icons.AutoMirrored.Outlined.List)
             return remember { TabOptions(index = 3u, title = "Lists", icon = icon) }
         }
 
     @Composable
     override fun Content() {
-        ListsScreen()
+        Navigator(ListsWrapperScreen())
     }
 }
