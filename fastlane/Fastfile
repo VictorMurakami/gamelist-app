@@ -1,0 +1,38 @@
+default_platform(:android)
+
+platform :android do
+  desc "Run unit tests"
+  lane :test do
+    gradle(task: ":composeApp:allTests")
+  end
+
+  desc "Build debug APK"
+  lane :build_debug do
+    gradle(task: ":composeApp:assembleDebug")
+  end
+
+  desc "Build release APK"
+  lane :build_release do
+    gradle(
+      task: ":composeApp:assembleRelease",
+      print_command: false
+    )
+  end
+
+  # Uncomment when ready for Play Store
+  # desc "Deploy to Google Play internal track"
+  # lane :deploy_internal do
+  #   build_release
+  #   supply(
+  #     track: "internal",
+  #     aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab"
+  #   )
+  # end
+end
+
+# platform :ios do
+#   desc "Build iOS app"
+#   lane :build do
+#     build_app(scheme: "iosApp")
+#   end
+# end

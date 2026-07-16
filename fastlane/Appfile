@@ -1,0 +1,6 @@
+# Android
+package_name("com.kami.gamelist")
+
+# iOS (uncomment when ready)
+# app_identifier("com.kami.gamelist")
+# apple_id("your@email.com")
