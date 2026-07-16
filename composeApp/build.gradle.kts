@@ -16,6 +16,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -80,6 +82,15 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native)
+        }
+
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.java)
+            implementation(libs.sqldelight.jdbc)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.sqldelight.jdbc)
         }
     }
 }
