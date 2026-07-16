@@ -1,0 +1,56 @@
+CREATE TABLE GameEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    thumbnail TEXT NOT NULL,
+    short_description TEXT NOT NULL,
+    game_url TEXT NOT NULL,
+    genre TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    publisher TEXT NOT NULL,
+    developer TEXT NOT NULL,
+    release_date TEXT NOT NULL,
+    freetogame_profile_url TEXT NOT NULL,
+    -- detail fields (nullable, populated when detail is fetched)
+    description TEXT,
+    status TEXT,
+    min_req_os TEXT,
+    min_req_processor TEXT,
+    min_req_memory TEXT,
+    min_req_graphics TEXT,
+    min_req_storage TEXT
+);
+
+selectAll:
+SELECT * FROM GameEntity ORDER BY title ASC;
+
+selectById:
+SELECT * FROM GameEntity WHERE id = ?;
+
+selectByGenre:
+SELECT * FROM GameEntity WHERE genre = ? ORDER BY title ASC;
+
+selectByPlatform:
+SELECT * FROM GameEntity WHERE platform LIKE '%' || ? || '%' ORDER BY title ASC;
+
+selectByGenreAndPlatform:
+SELECT * FROM GameEntity WHERE genre = ? AND platform LIKE '%' || ? || '%' ORDER BY title ASC;
+
+searchByTitle:
+SELECT * FROM GameEntity WHERE title LIKE '%' || ? || '%' ORDER BY title ASC;
+
+upsert:
+INSERT OR REPLACE INTO GameEntity(
+    id, title, thumbnail, short_description, game_url, genre, platform,
+    publisher, developer, release_date, freetogame_profile_url,
+    description, status, min_req_os, min_req_processor, min_req_memory,
+    min_req_graphics, min_req_storage
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM GameEntity;
+
+selectAllGenres:
+SELECT DISTINCT genre FROM GameEntity ORDER BY genre ASC;
+
+selectAllPlatforms:
+SELECT DISTINCT platform FROM GameEntity ORDER BY platform ASC;

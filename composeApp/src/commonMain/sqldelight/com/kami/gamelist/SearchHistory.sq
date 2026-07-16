@@ -1,0 +1,16 @@
+CREATE TABLE SearchHistoryEntity (
+    query TEXT NOT NULL PRIMARY KEY,
+    searched_at INTEGER NOT NULL
+);
+
+selectRecent:
+SELECT * FROM SearchHistoryEntity ORDER BY searched_at DESC LIMIT 10;
+
+insert:
+INSERT OR REPLACE INTO SearchHistoryEntity(query, searched_at) VALUES (?, ?);
+
+delete:
+DELETE FROM SearchHistoryEntity WHERE query = ?;
+
+deleteAll:
+DELETE FROM SearchHistoryEntity;

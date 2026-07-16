@@ -1,0 +1,19 @@
+CREATE TABLE FavoriteEntity (
+    game_id INTEGER NOT NULL PRIMARY KEY,
+    added_at INTEGER NOT NULL,
+    FOREIGN KEY(game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+selectAll:
+SELECT GameEntity.* FROM FavoriteEntity
+INNER JOIN GameEntity ON FavoriteEntity.game_id = GameEntity.id
+ORDER BY FavoriteEntity.added_at DESC;
+
+isFavorite:
+SELECT COUNT(*) FROM FavoriteEntity WHERE game_id = ?;
+
+insert:
+INSERT OR REPLACE INTO FavoriteEntity(game_id, added_at) VALUES (?, ?);
+
+delete:
+DELETE FROM FavoriteEntity WHERE game_id = ?;

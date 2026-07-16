@@ -1,0 +1,24 @@
+CREATE TABLE UserListEntity (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+selectAll:
+SELECT * FROM UserListEntity ORDER BY created_at ASC;
+
+selectById:
+SELECT * FROM UserListEntity WHERE id = ?;
+
+insert:
+INSERT INTO UserListEntity(name, type, created_at) VALUES (?, ?, ?);
+
+update:
+UPDATE UserListEntity SET name = ? WHERE id = ?;
+
+delete:
+DELETE FROM UserListEntity WHERE id = ?;
+
+lastInsertId:
+SELECT last_insert_rowid();

@@ -1,0 +1,29 @@
+CREATE TABLE UserListEntryEntity (
+    list_id INTEGER NOT NULL,
+    game_id INTEGER NOT NULL,
+    added_at INTEGER NOT NULL,
+    PRIMARY KEY(list_id, game_id),
+    FOREIGN KEY(list_id) REFERENCES UserListEntity(id) ON DELETE CASCADE,
+    FOREIGN KEY(game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+selectByListId:
+SELECT GameEntity.* FROM UserListEntryEntity
+INNER JOIN GameEntity ON UserListEntryEntity.game_id = GameEntity.id
+WHERE UserListEntryEntity.list_id = ?
+ORDER BY UserListEntryEntity.added_at DESC;
+
+isInList:
+SELECT COUNT(*) FROM UserListEntryEntity WHERE list_id = ? AND game_id = ?;
+
+insert:
+INSERT OR REPLACE INTO UserListEntryEntity(list_id, game_id, added_at) VALUES (?, ?, ?);
+
+delete:
+DELETE FROM UserListEntryEntity WHERE list_id = ? AND game_id = ?;
+
+deleteAllForList:
+DELETE FROM UserListEntryEntity WHERE list_id = ?;
+
+countByListId:
+SELECT COUNT(*) FROM UserListEntryEntity WHERE list_id = ?;
