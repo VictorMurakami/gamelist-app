@@ -12,9 +12,11 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.kami.gamelist.feature.home.HomeScreen
+import com.kami.gamelist.feature.home.HomeScreenModel
 import com.kami.gamelist.feature.search.SearchScreen
 import com.kami.gamelist.feature.favorites.FavoritesScreen
 import com.kami.gamelist.feature.lists.ListsScreen
@@ -28,7 +30,8 @@ object HomeTab : Tab {
 
     @Composable
     override fun Content() {
-        HomeScreen()
+        val screenModel = koinScreenModel<HomeScreenModel>()
+        HomeScreen(screenModel)
     }
 }
 
