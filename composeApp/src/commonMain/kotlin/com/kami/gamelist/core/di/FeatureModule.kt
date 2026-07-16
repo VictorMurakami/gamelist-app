@@ -5,7 +5,7 @@ package com.kami.gamelist.core.di
 // import com.kami.gamelist.feature.favorites.FavoritesScreenModel
 // import com.kami.gamelist.feature.lists.ListDetailScreenModel
 // import com.kami.gamelist.feature.lists.ListsScreenModel
-// import com.kami.gamelist.feature.search.SearchScreenModel
+import com.kami.gamelist.feature.search.SearchScreenModel
 import com.kami.gamelist.core.network.ConnectivityMonitor
 import com.kami.gamelist.feature.home.HomeScreenModel
 import org.koin.dsl.module
@@ -14,8 +14,8 @@ val featureModule = module {
     // Task 9 - Home Feature
     factory { HomeScreenModel(get(), get<ConnectivityMonitor>().isOnline) }
 
-    // TODO: Task 10 - Search Feature
-    // factory { SearchScreenModel(get(), get()) }
+    // Task 10 - Search Feature
+    factory { SearchScreenModel(get(), get()) }
 
     // TODO: Task 11 - Game Detail Feature
     // factory { params -> GameDetailScreenModel(params.get(), get(), get()) }

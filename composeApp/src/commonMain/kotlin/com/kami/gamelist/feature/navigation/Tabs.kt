@@ -18,6 +18,7 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.kami.gamelist.feature.home.HomeScreen
 import com.kami.gamelist.feature.home.HomeScreenModel
 import com.kami.gamelist.feature.search.SearchScreen
+import com.kami.gamelist.feature.search.SearchScreenModel
 import com.kami.gamelist.feature.favorites.FavoritesScreen
 import com.kami.gamelist.feature.lists.ListsScreen
 
@@ -44,7 +45,8 @@ object SearchTab : Tab {
 
     @Composable
     override fun Content() {
-        SearchScreen()
+        val screenModel = koinScreenModel<SearchScreenModel>()
+        SearchScreen(screenModel)
     }
 }
 
