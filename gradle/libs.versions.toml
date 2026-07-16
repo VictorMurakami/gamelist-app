@@ -12,6 +12,7 @@ coroutines = "1.10.2"
 serialization = "1.8.1"
 compottie = "2.0.0-rc04"
 turbine = "1.2.0"
+datetime = "0.6.2"
 
 [libraries]
 # Ktor
@@ -61,6 +62,9 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 # Test
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+
+# Kotlinx DateTime
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

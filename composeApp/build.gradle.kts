@@ -63,6 +63,7 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
         }
 
         commonTest.dependencies {
@@ -70,6 +71,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
             implementation(libs.turbine)
+            implementation(libs.sqldelight.jdbc)
         }
 
         androidMain.dependencies {
