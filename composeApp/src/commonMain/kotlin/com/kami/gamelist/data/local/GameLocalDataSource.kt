@@ -53,6 +53,27 @@ class GameLocalDataSource(private val database: GameListDatabase) {
         }
     }
 
+    fun observeRecentReleases(limit: Int = 20): Flow<List<Game>> =
+        gameQueries.selectRecentReleases(limit.toLong())
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { entities -> entities.map { it.toDomain() } }
+
+    fun observeGamesByIds(ids: List<Int>): Flow<List<Game>> =
+        gameQueries.selectByIds(ids.map { it.toLong() })
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { entities ->
+                val map = entities.associate { it.id.toInt() to it.toDomain() }
+                ids.mapNotNull { map[it] }
+            }
+
+    fun observeGamesByGenres(genres: List<String>): Flow<List<Game>> =
+        gameQueries.selectByGenres(genres)
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { entities -> entities.map { it.toDomain() } }
+
     fun searchByTitle(query: String): Flow<List<Game>> =
         gameQueries.searchByTitle(query)
             .asFlow()
