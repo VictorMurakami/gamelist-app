@@ -9,7 +9,7 @@ run-android:
 	./gradlew :composeApp:installDebug
 
 run-ios:
-	cd iosApp && xcodebuild -scheme iosApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16' build
+	xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 17' build
 
 test:
 	./gradlew :composeApp:allTests

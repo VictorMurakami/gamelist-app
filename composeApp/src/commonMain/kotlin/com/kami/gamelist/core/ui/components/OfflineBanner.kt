@@ -7,18 +7,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.theme.GameTheme
 
 @Composable
 fun OfflineBanner(
     isOffline: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val colors = GameTheme.colors
+
     AnimatedVisibility(
         visible = isOffline,
         enter = expandVertically(),
@@ -28,14 +30,14 @@ fun OfflineBanner(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.errorContainer)
+                .background(colors.errorContainer)
                 .padding(vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Offline — showing cached data",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                text = "OFFLINE — SHOWING CACHED DATA",
+                style = GameTheme.typography.labelSmall,
+                color = colors.onErrorContainer
             )
         }
     }

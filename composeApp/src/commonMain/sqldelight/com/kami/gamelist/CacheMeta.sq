@@ -11,3 +11,6 @@ INSERT OR REPLACE INTO CacheMetaEntity(cache_key, last_fetched_at) VALUES (?, ?)
 
 delete:
 DELETE FROM CacheMetaEntity WHERE cache_key = ?;
+
+deleteAll:
+DELETE FROM CacheMetaEntity;

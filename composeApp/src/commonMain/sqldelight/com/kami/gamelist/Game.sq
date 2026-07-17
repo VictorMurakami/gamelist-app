@@ -66,6 +66,15 @@ INSERT OR REPLACE INTO GameEntity(
 deleteAll:
 DELETE FROM GameEntity;
 
+selectRecentReleases:
+SELECT * FROM GameEntity ORDER BY release_date DESC LIMIT ?;
+
+selectByIds:
+SELECT * FROM GameEntity WHERE id IN ?;
+
+selectByGenres:
+SELECT * FROM GameEntity WHERE genre IN ? ORDER BY release_date DESC;
+
 selectAllGenres:
 SELECT DISTINCT genre FROM GameEntity ORDER BY genre ASC;
 
