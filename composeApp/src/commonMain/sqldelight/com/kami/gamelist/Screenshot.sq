@@ -1,0 +1,15 @@
+CREATE TABLE ScreenshotEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    game_id INTEGER NOT NULL,
+    image TEXT NOT NULL,
+    FOREIGN KEY(game_id) REFERENCES GameEntity(id) ON DELETE CASCADE
+);
+
+selectByGameId:
+SELECT * FROM ScreenshotEntity WHERE game_id = ? ORDER BY id ASC;
+
+insertScreenshot:
+INSERT OR REPLACE INTO ScreenshotEntity(id, game_id, image) VALUES (?, ?, ?);
+
+deleteByGameId:
+DELETE FROM ScreenshotEntity WHERE game_id = ?;

@@ -1,0 +1,13 @@
+CREATE TABLE CacheMetaEntity (
+    cache_key TEXT NOT NULL PRIMARY KEY,
+    last_fetched_at INTEGER NOT NULL
+);
+
+getLastFetched:
+SELECT last_fetched_at FROM CacheMetaEntity WHERE cache_key = ?;
+
+upsert:
+INSERT OR REPLACE INTO CacheMetaEntity(cache_key, last_fetched_at) VALUES (?, ?);
+
+delete:
+DELETE FROM CacheMetaEntity WHERE cache_key = ?;

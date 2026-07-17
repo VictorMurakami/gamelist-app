@@ -16,6 +16,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -32,6 +34,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.animation)
@@ -61,6 +64,7 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
         }
 
         commonTest.dependencies {
@@ -68,6 +72,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
             implementation(libs.turbine)
+            implementation(libs.sqldelight.jdbc)
         }
 
         androidMain.dependencies {
@@ -80,6 +85,15 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native)
+        }
+
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.java)
+            implementation(libs.sqldelight.jdbc)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.sqldelight.jdbc)
         }
     }
 }
@@ -106,6 +120,7 @@ sqldelight {
     databases {
         create("GameListDatabase") {
             packageName.set("com.kami.gamelist.db")
+            dialect(libs.sqldelight.dialect)
         }
     }
 }
