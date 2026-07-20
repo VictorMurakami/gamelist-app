@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.modifier.pressScale
 import com.kami.gamelist.core.ui.theme.GameTheme
 
@@ -30,6 +31,7 @@ fun ErrorState(
     modifier: Modifier = Modifier
 ) {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -65,7 +67,7 @@ fun ErrorState(
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
-                    text = "RETRY",
+                    text = strings.retry,
                     style = GameTheme.typography.labelLarge,
                     color = colors.accent
                 )

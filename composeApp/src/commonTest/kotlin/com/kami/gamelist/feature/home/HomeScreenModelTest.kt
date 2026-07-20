@@ -5,9 +5,11 @@ import app.cash.turbine.test
 import com.kami.gamelist.core.ui.UiState
 import com.kami.gamelist.data.local.CacheManager
 import com.kami.gamelist.data.local.GameLocalDataSource
+import com.kami.gamelist.data.local.UserLocalDataSource
 import com.kami.gamelist.data.remote.FreeToGameApi
 import com.kami.gamelist.data.remote.dto.GameDto
 import com.kami.gamelist.data.repository.GameRepository
+import com.kami.gamelist.data.repository.UserRepository
 import com.kami.gamelist.db.GameListDatabase
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -88,7 +90,8 @@ class HomeScreenModelTest {
         repository.refreshGames()
 
         val isOnline = MutableStateFlow(true)
-        val screenModel = HomeScreenModel(repository, isOnline)
+        val userRepository = UserRepository(UserLocalDataSource(database))
+        val screenModel = HomeScreenModel(repository, userRepository, isOnline)
 
         screenModel.uiState.test {
             assertIs<UiState.Loading>(awaitItem())

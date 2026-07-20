@@ -6,8 +6,11 @@ enum class AccentOption { CYAN, PURPLE, PINK, GREEN }
 
 enum class GridColumnsOption { ADAPTIVE, TWO, THREE }
 
-enum class PlatformPreference(val label: String) {
-    ALL("All"),
-    PC("PC"),
-    BROWSER("Browser")
+enum class PlatformPreference {
+    ALL, PC, BROWSER
+}
+
+enum class Language(val displayName: String) {
+    EN("English"),
+    PT_BR("Português (BR)"),
 }

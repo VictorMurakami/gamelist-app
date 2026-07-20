@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.modifier.pressScale
 import com.kami.gamelist.core.ui.theme.GameTheme
 
@@ -33,6 +34,7 @@ fun DeleteListSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -56,7 +58,7 @@ fun DeleteListSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "DELETE LIST",
+                text = strings.deleteList,
                 style = GameTheme.typography.headlineSmall,
                 color = colors.error
             )
@@ -64,7 +66,7 @@ fun DeleteListSheet(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Are you sure you want to delete \"$listName\"?\nThis action cannot be undone.",
+                text = strings.deleteConfirmMessage(listName),
                 style = GameTheme.typography.bodyMedium,
                 color = colors.textSecondary,
                 textAlign = TextAlign.Center
@@ -79,7 +81,7 @@ fun DeleteListSheet(
                 border = BorderStroke(1.dp, colors.error.copy(alpha = 0.4f))
             ) {
                 Text(
-                    text = "DELETE",
+                    text = strings.delete.uppercase(),
                     style = GameTheme.typography.labelLarge,
                     color = colors.error,
                     modifier = Modifier.padding(vertical = 14.dp).fillMaxWidth(),
@@ -96,7 +98,7 @@ fun DeleteListSheet(
                 border = BorderStroke(1.dp, colors.borderSubtle)
             ) {
                 Text(
-                    text = "CANCEL",
+                    text = strings.cancel.uppercase(),
                     style = GameTheme.typography.labelLarge,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(vertical = 14.dp).fillMaxWidth(),

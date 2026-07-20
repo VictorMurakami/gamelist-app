@@ -8,7 +8,7 @@ import com.kami.gamelist.data.model.ListType
 import com.kami.gamelist.data.model.SearchHistory
 import com.kami.gamelist.data.model.UserList
 import com.kami.gamelist.db.GameListDatabase
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Clock
@@ -23,13 +23,13 @@ class UserLocalDataSource(private val database: GameListDatabase) {
     fun observeFavorites(): Flow<List<Game>> =
         favoriteQueries.selectAll()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun isFavorite(gameId: Int): Flow<Boolean> =
         favoriteQueries.isFavorite(gameId.toLong())
             .asFlow()
-            .mapToOne(Dispatchers.IO)
+            .mapToOne(Default)
             .map { it > 0 }
 
     fun toggleFavorite(gameId: Int) {
@@ -44,7 +44,7 @@ class UserLocalDataSource(private val database: GameListDatabase) {
     fun observeLists(): Flow<List<UserList>> =
         userListQueries.selectAll()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun createList(name: String, type: ListType): Long {
@@ -74,19 +74,19 @@ class UserLocalDataSource(private val database: GameListDatabase) {
     fun observeGamesInList(listId: Long): Flow<List<Game>> =
         userListEntryQueries.selectByListId(listId)
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun isInList(listId: Long, gameId: Int): Flow<Boolean> =
         userListEntryQueries.isInList(listId, gameId.toLong())
             .asFlow()
-            .mapToOne(Dispatchers.IO)
+            .mapToOne(Default)
             .map { it > 0 }
 
     fun listGameCount(listId: Long): Flow<Long> =
         userListEntryQueries.countByListId(listId)
             .asFlow()
-            .mapToOne(Dispatchers.IO)
+            .mapToOne(Default)
 
     fun addSearchQuery(query: String, searchedAt: Long = Clock.System.now().toEpochMilliseconds()) {
         searchHistoryQueries.insert(query, searchedAt)
@@ -95,7 +95,7 @@ class UserLocalDataSource(private val database: GameListDatabase) {
     fun observeRecentSearches(): Flow<List<SearchHistory>> =
         searchHistoryQueries.selectRecent()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities ->
                 entities.map { SearchHistory(query = it.query, searchedAt = it.searched_at) }
             }

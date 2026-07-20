@@ -55,6 +55,7 @@ import androidx.compose.foundation.rememberScrollState
 import com.kami.gamelist.core.ui.components.SectionHeader
 import com.kami.gamelist.core.ui.model.ListUi
 import com.kami.gamelist.core.ui.modifier.pressScale
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.theme.GameTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,8 +68,15 @@ fun ListsScreen(screenModel: ListsScreenModel) {
     var listToDelete by remember { mutableStateOf<ListUi?>(null) }
     val toastState = LocalGameToastState.current
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
     val listState = rememberLazyListState()
     val scrollToTop = LocalScrollToTop.current
+
+    val sortLabels = mapOf(
+        ListSortOption.NEWEST to strings.sortNewest,
+        ListSortOption.NAME_ASC to strings.sortAZ,
+        ListSortOption.GAME_COUNT to strings.sortMostGames,
+    )
 
     LaunchedEffect(scrollToTop.trigger) {
         if (scrollToTop.trigger > 0) {
@@ -92,12 +100,12 @@ fun ListsScreen(screenModel: ListsScreenModel) {
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             SectionHeader(
-                title = if (lists.isEmpty()) "My Lists" else "My Lists (${lists.size})"
+                title = if (lists.isEmpty()) strings.myLists else strings.myListsCount(lists.size)
             )
 
             if (lists.isNotEmpty()) {
                 Text(
-                    text = "SORT",
+                    text = strings.sort,
                     style = GameTheme.typography.labelSmall,
                     color = colors.textMuted,
                     modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
@@ -110,7 +118,7 @@ fun ListsScreen(screenModel: ListsScreenModel) {
                 ) {
                     ListSortOption.entries.forEach { option ->
                         GameChip(
-                            label = option.label,
+                            label = sortLabels.getValue(option),
                             selected = option == sortOption,
                             onClick = { screenModel.setSortOption(option) }
                         )
@@ -122,8 +130,8 @@ fun ListsScreen(screenModel: ListsScreenModel) {
             if (lists.isEmpty()) {
                 EmptyState(
                     icon = Icons.AutoMirrored.Outlined.List,
-                    title = "No lists yet",
-                    subtitle = "Create a list to organize your games"
+                    title = strings.noListsYet,
+                    subtitle = strings.createListToOrganize
                 )
             } else {
                 LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
@@ -145,19 +153,19 @@ fun ListsScreen(screenModel: ListsScreenModel) {
                 onCreate = { name ->
                     screenModel.createList(name)
                     showCreateSheet = false
-                    toastState.show("\"$name\" created", GameToastType.SUCCESS)
+                    toastState.show(strings.listCreated(name), GameToastType.SUCCESS)
                 }
             )
         }
 
         listToDelete?.let { list ->
             ConfirmationDialog(
-                title = "Delete \"${list.name}\"?",
-                message = "This list and its game references will be removed.",
-                confirmLabel = "Delete",
+                title = strings.deleteListQuestion(list.name),
+                message = strings.deleteListMessage(),
+                confirmLabel = strings.delete,
                 onConfirm = {
                     screenModel.deleteList(list.id)
-                    toastState.show("\"${list.name}\" deleted", GameToastType.SUCCESS)
+                    toastState.show(strings.listDeleted(list.name), GameToastType.SUCCESS)
                 },
                 onDismiss = { listToDelete = null }
             )
@@ -205,7 +213,7 @@ private fun SwipeableListItem(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "DELETE",
+                        text = LocalStrings.current.delete.uppercase(),
                         style = GameTheme.typography.labelSmall,
                         color = colors.error
                     )
@@ -231,6 +239,7 @@ private fun ListItemContent(
     onDelete: () -> Unit,
 ) {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     GameSurface(
         modifier = Modifier
@@ -254,8 +263,7 @@ private fun ListItemContent(
                     text = buildString {
                         append(list.typeLabel)
                         append(" · ")
-                        append(list.gameCount)
-                        append(if (list.gameCount == 1) " game" else " games")
+                        append(strings.gameCountLabel(list.gameCount))
                     },
                     style = GameTheme.typography.labelSmall,
                     color = colors.textMuted

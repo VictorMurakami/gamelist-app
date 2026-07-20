@@ -102,7 +102,7 @@ private fun GameTabBar(
         label = "indicator_offset"
     )
 
-    Column(modifier = modifier.navigationBarsPadding()) {
+    Column(modifier = modifier.background(colors.surfaceBase).navigationBarsPadding()) {
         Box(
             Modifier
                 .fillMaxWidth()

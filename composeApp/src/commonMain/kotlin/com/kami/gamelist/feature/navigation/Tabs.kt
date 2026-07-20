@@ -72,7 +72,7 @@ object HomeTab : Tab {
     override val options: TabOptions
         @Composable get() {
             val icon = rememberVectorPainter(Icons.Outlined.Home)
-            return remember { TabOptions(index = 0u, title = "Home", icon = icon) }
+            return remember { TabOptions(index = 0u, title = "", icon = icon) }
         }
 
     @Composable
@@ -90,7 +90,7 @@ object SearchTab : Tab {
     override val options: TabOptions
         @Composable get() {
             val icon = rememberVectorPainter(Icons.Outlined.Search)
-            return remember { TabOptions(index = 1u, title = "Search", icon = icon) }
+            return remember { TabOptions(index = 1u, title = "", icon = icon) }
         }
 
     @Composable
@@ -108,7 +108,7 @@ object FavoritesTab : Tab {
     override val options: TabOptions
         @Composable get() {
             val icon = rememberVectorPainter(Icons.Outlined.FavoriteBorder)
-            return remember { TabOptions(index = 2u, title = "Favorites", icon = icon) }
+            return remember { TabOptions(index = 2u, title = "", icon = icon) }
         }
 
     @Composable
@@ -126,7 +126,7 @@ object ListsTab : Tab {
     override val options: TabOptions
         @Composable get() {
             val icon = rememberVectorPainter(Icons.AutoMirrored.Outlined.List)
-            return remember { TabOptions(index = 3u, title = "Lists", icon = icon) }
+            return remember { TabOptions(index = 3u, title = "", icon = icon) }
         }
 
     @Composable
@@ -144,7 +144,7 @@ object SettingsTab : Tab {
     override val options: TabOptions
         @Composable get() {
             val icon = rememberVectorPainter(Icons.Outlined.Settings)
-            return remember { TabOptions(index = 4u, title = "Settings", icon = icon) }
+            return remember { TabOptions(index = 4u, title = "", icon = icon) }
         }
 
     @Composable

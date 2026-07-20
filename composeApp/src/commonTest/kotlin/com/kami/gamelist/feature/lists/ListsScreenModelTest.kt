@@ -3,7 +3,6 @@ package com.kami.gamelist.feature.lists
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import app.cash.turbine.test
 import com.kami.gamelist.data.local.UserLocalDataSource
-import com.kami.gamelist.data.model.ListType
 import com.kami.gamelist.data.repository.UserRepository
 import com.kami.gamelist.db.GameListDatabase
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +37,8 @@ class ListsScreenModelTest {
     @Test
     fun createAndObserveLists() = runTest {
         val screenModel = ListsScreenModel(userRepository)
-        screenModel.createList("Jogando", ListType.PLAYING)
-        screenModel.createList("Quero Jogar", ListType.WANT_TO_PLAY)
+        screenModel.createList("Jogando")
+        screenModel.createList("Quero Jogar")
 
         screenModel.lists.test {
             var result = awaitItem()
@@ -56,7 +55,7 @@ class ListsScreenModelTest {
     @Test
     fun deleteListRemovesIt() = runTest {
         val screenModel = ListsScreenModel(userRepository)
-        screenModel.createList("Temp", ListType.CUSTOM)
+        screenModel.createList("Temp")
 
         screenModel.lists.test {
             var before = awaitItem()
