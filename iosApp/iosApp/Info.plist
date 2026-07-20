@@ -12,6 +12,8 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleDisplayName</key>
+	<string>LevelUp Hub</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
@@ -25,9 +27,9 @@
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
-	<key>UILaunchScreen</key>
-	<dict/>
-	<key>UISupportedInterfaceOrientations</key>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
