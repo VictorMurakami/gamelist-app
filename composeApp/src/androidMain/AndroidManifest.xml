@@ -7,13 +7,14 @@
         android:name=".GameListApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="GameList"
+        android:label="LevelUp Hub"
         android:supportsRtl="true"
         android:theme="@style/Theme.GameList">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:exported="true"
+            android:theme="@style/Theme.GameList.Splash"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

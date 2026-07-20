@@ -1,5 +1,6 @@
 package com.kami.gamelist.feature.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +19,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import gamelist.composeapp.generated.resources.Res
+import gamelist.composeapp.generated.resources.logo_levelup
+import org.jetbrains.compose.resources.painterResource
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.kami.gamelist.core.ui.UiState
@@ -94,10 +99,11 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                 .padding(horizontal = 16.dp)
                 .padding(top = 16.dp, bottom = 4.dp)
         ) {
-            Text(
-                text = strings.appTitle,
-                style = GameTheme.typography.headlineMedium,
-                color = colors.accent
+            Image(
+                painter = painterResource(Res.drawable.logo_levelup),
+                contentDescription = strings.appTitle,
+                modifier = Modifier.height(32.dp),
+                contentScale = ContentScale.Fit
             )
             val gameCount = (uiState as? UiState.Success)?.data?.games?.size
             Text(
