@@ -40,6 +40,7 @@ import com.kami.gamelist.core.ui.components.OfflineBanner
 import com.kami.gamelist.data.remote.SortOption
 import com.kami.gamelist.data.repository.SyncState
 import com.kami.gamelist.feature.detail.GameDetailNavScreen
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.theme.GameTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +60,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
     val popularGames by screenModel.popularGames.collectAsState()
     val recommendedGames by screenModel.recommendedGames.collectAsState()
     val toastState = LocalGameToastState.current
+    val strings = LocalStrings.current
     val colors = GameTheme.colors
     val preferences = LocalUserPreferences.current
     val scrollToTop = LocalScrollToTop.current
@@ -93,13 +95,13 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                 .padding(top = 16.dp, bottom = 4.dp)
         ) {
             Text(
-                text = "GAMELIST",
-                style = GameTheme.typography.headlineLarge,
+                text = strings.appTitle,
+                style = GameTheme.typography.headlineMedium,
                 color = colors.accent
             )
             val gameCount = (uiState as? UiState.Success)?.data?.games?.size
             Text(
-                text = if (gameCount != null) "$gameCount free-to-play games" else "Free-to-Play Catalog",
+                text = if (gameCount != null) strings.freeToPlayCount(gameCount) else strings.freeCatalog,
                 style = GameTheme.typography.bodySmall,
                 color = colors.textMuted
             )
@@ -124,7 +126,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
 
                 if (data.genres.isNotEmpty()) {
                     Text(
-                        text = "GENRE",
+                        text = strings.genre,
                         style = GameTheme.typography.labelSmall,
                         color = colors.textMuted,
                         modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
@@ -134,14 +136,14 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                         selectedOptions = selectedGenres,
                         onOptionToggled = { screenModel.toggleGenre(it) },
                         onClearAll = { screenModel.clearGenres() },
-                        allLabel = "All"
+                        allLabel = strings.all
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
                 if (data.platforms.isNotEmpty()) {
                     Text(
-                        text = "PLATFORM",
+                        text = strings.platform,
                         style = GameTheme.typography.labelSmall,
                         color = colors.textMuted,
                         modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
@@ -150,34 +152,34 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                         options = data.platforms,
                         selectedOption = selectedPlatform,
                         onOptionSelected = { screenModel.selectPlatform(it) },
-                        allLabel = "All"
+                        allLabel = strings.all
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
                 if (isFiltering) {
                     Text(
-                        text = "SORT",
+                        text = strings.sort,
                         style = GameTheme.typography.labelSmall,
                         color = colors.textMuted,
                         modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                     GameChipRow(
-                        options = listOf("Release Date", "A-Z"),
+                        options = listOf(strings.releaseDate, strings.alphabetical),
                         selectedOption = when (selectedSort) {
-                            SortOption.RELEASE_DATE -> "Release Date"
-                            SortOption.ALPHABETICAL -> "A-Z"
+                            SortOption.RELEASE_DATE -> strings.releaseDate
+                            SortOption.ALPHABETICAL -> strings.alphabetical
                             else -> null
                         },
                         onOptionSelected = { label ->
                             val sort = when (label) {
-                                "Release Date" -> SortOption.RELEASE_DATE
-                                "A-Z" -> SortOption.ALPHABETICAL
+                                strings.releaseDate -> SortOption.RELEASE_DATE
+                                strings.alphabetical -> SortOption.ALPHABETICAL
                                 else -> SortOption.RELEVANCE
                             }
                             screenModel.setSortOption(sort)
                         },
-                        allLabel = "Default"
+                        allLabel = strings.defaultSort
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -187,8 +189,8 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                 if (data.games.isEmpty()) {
                     EmptyState(
                         icon = Icons.Outlined.SportsEsports,
-                        title = "No games found",
-                        subtitle = "Try adjusting your filters"
+                        title = strings.noGamesFound,
+                        subtitle = strings.tryAdjustingFilters
                     )
                 } else if (isFiltering) {
                     PullToRefreshBox(
@@ -201,7 +203,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                             onGameClick = { game -> navigator.push(GameDetailNavScreen(game.id)) },
                             favoriteIds = favoriteIds,
                             onToggleFavorite = { gameId ->
-                                handleFavoriteToggle(gameId, favoriteIds, screenModel, toastState)
+                                handleFavoriteToggle(gameId, favoriteIds, screenModel, toastState, strings)
                             }
                         )
                     }
@@ -215,13 +217,13 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                             if (recentReleases.isNotEmpty()) {
                                 item(key = "section_recent") {
                                     GameSpotlightRow(
-                                        title = HomeSection.RECENT.displayTitle,
+                                        title = strings.recentReleases,
                                         games = recentReleases,
                                         onGameClick = { navigator.push(GameDetailNavScreen(it.id)) },
                                         onSeeAllClick = { navigator.push(SeeAllNavScreen(HomeSection.RECENT)) },
                                         favoriteIds = favoriteIds,
                                         onToggleFavorite = { gameId ->
-                                            handleFavoriteToggle(gameId, favoriteIds, screenModel, toastState)
+                                            handleFavoriteToggle(gameId, favoriteIds, screenModel, toastState, strings)
                                         },
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
@@ -232,13 +234,13 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                             if (popularGames.isNotEmpty()) {
                                 item(key = "section_popular") {
                                     GameRankedRow(
-                                        title = HomeSection.POPULAR.displayTitle,
+                                        title = strings.popularNow,
                                         games = popularGames,
                                         onGameClick = { navigator.push(GameDetailNavScreen(it.id)) },
                                         onSeeAllClick = { navigator.push(SeeAllNavScreen(HomeSection.POPULAR)) },
                                         favoriteIds = favoriteIds,
                                         onToggleFavorite = { gameId ->
-                                            handleFavoriteToggle(gameId, favoriteIds, screenModel, toastState)
+                                            handleFavoriteToggle(gameId, favoriteIds, screenModel, toastState, strings)
                                         },
                                     )
                                     Spacer(modifier = Modifier.height(24.dp))
@@ -248,7 +250,7 @@ fun HomeScreen(screenModel: HomeScreenModel) {
                             if (recommendedGames.isNotEmpty()) {
                                 item(key = "section_recommended") {
                                     GameCompactRow(
-                                        title = HomeSection.RECOMMENDED.displayTitle,
+                                        title = strings.forYou,
                                         games = recommendedGames,
                                         onGameClick = { navigator.push(GameDetailNavScreen(it.id)) },
                                         onSeeAllClick = {
@@ -276,11 +278,12 @@ private fun handleFavoriteToggle(
     favoriteIds: Set<Int>,
     screenModel: HomeScreenModel,
     toastState: com.kami.gamelist.core.ui.components.GameToastState,
+    strings: com.kami.gamelist.core.ui.localization.AppStrings,
 ) {
     val wasAdded = gameId !in favoriteIds
     screenModel.toggleFavorite(gameId)
     toastState.show(
-        if (wasAdded) "Added to favorites" else "Removed from favorites",
+        if (wasAdded) strings.addedToFavorites else strings.removedFromFavorites,
         if (wasAdded) GameToastType.SUCCESS else GameToastType.INFO
     )
 }

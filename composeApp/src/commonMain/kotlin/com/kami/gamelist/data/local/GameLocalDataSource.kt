@@ -6,7 +6,7 @@ import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.kami.gamelist.data.model.Game
 import com.kami.gamelist.data.model.GameDetail
 import com.kami.gamelist.db.GameListDatabase
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -19,34 +19,34 @@ class GameLocalDataSource(private val database: GameListDatabase) {
     fun observeGames(): Flow<List<Game>> =
         gameQueries.selectAll()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun observeGamesByGenre(genre: String): Flow<List<Game>> =
         gameQueries.selectByGenre(genre)
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun observeGamesByPlatform(platform: String): Flow<List<Game>> =
         gameQueries.selectByPlatform(platform)
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun observeGamesByGenreAndPlatform(genre: String, platform: String): Flow<List<Game>> =
         gameQueries.selectByGenreAndPlatform(genre, platform)
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun observeGameById(id: Int): Flow<GameDetail?> {
         val gameFlow = gameQueries.selectById(id.toLong())
             .asFlow()
-            .mapToOneOrNull(Dispatchers.IO)
+            .mapToOneOrNull(Default)
         val screenshotsFlow = screenshotQueries.selectByGameId(id.toLong())
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
 
         return combine(gameFlow, screenshotsFlow) { entity, screenshots ->
             entity?.toDetailDomain(screenshots)
@@ -56,13 +56,13 @@ class GameLocalDataSource(private val database: GameListDatabase) {
     fun observeRecentReleases(limit: Int = 20): Flow<List<Game>> =
         gameQueries.selectRecentReleases(limit.toLong())
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun observeGamesByIds(ids: List<Int>): Flow<List<Game>> =
         gameQueries.selectByIds(ids.map { it.toLong() })
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities ->
                 val map = entities.associate { it.id.toInt() to it.toDomain() }
                 ids.mapNotNull { map[it] }
@@ -71,24 +71,24 @@ class GameLocalDataSource(private val database: GameListDatabase) {
     fun observeGamesByGenres(genres: List<String>): Flow<List<Game>> =
         gameQueries.selectByGenres(genres)
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun searchByTitle(query: String): Flow<List<Game>> =
         gameQueries.searchByTitle(query)
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
             .map { entities -> entities.map { it.toDomain() } }
 
     fun observeGenres(): Flow<List<String>> =
         gameQueries.selectAllGenres()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
 
     fun observePlatforms(): Flow<List<String>> =
         gameQueries.selectAllPlatforms()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(Default)
 
     fun upsertGames(games: List<Game>) {
         database.transaction {

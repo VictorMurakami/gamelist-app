@@ -19,6 +19,7 @@ import com.kami.gamelist.core.ui.components.GameGrid
 import com.kami.gamelist.core.ui.components.GameSearchBar
 import com.kami.gamelist.core.ui.components.GameToastType
 import com.kami.gamelist.core.ui.components.LocalGameToastState
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.feature.detail.GameDetailNavScreen
 
 @Composable
@@ -30,6 +31,7 @@ fun SearchScreen(screenModel: SearchScreenModel) {
     val showHistory by screenModel.showHistory.collectAsState()
     val favoriteIds by screenModel.favoriteIds.collectAsState()
     val toastState = LocalGameToastState.current
+    val strings = LocalStrings.current
 
     Column(modifier = Modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -50,16 +52,16 @@ fun SearchScreen(screenModel: SearchScreenModel) {
             query.isBlank() && recentSearches.isEmpty() && showHistory -> {
                 EmptyState(
                     icon = Icons.Outlined.SportsEsports,
-                    title = "Search for games",
-                    subtitle = "Find free-to-play games by name"
+                    title = strings.searchForGames,
+                    subtitle = strings.findGamesByName
                 )
             }
 
             query.isNotBlank() && results.isEmpty() -> {
                 EmptyState(
                     icon = Icons.Outlined.Search,
-                    title = "No results",
-                    subtitle = "Try a different search term"
+                    title = strings.noResults,
+                    subtitle = strings.tryDifferentTerm
                 )
             }
 
@@ -72,7 +74,7 @@ fun SearchScreen(screenModel: SearchScreenModel) {
                         val wasAdded = gameId !in favoriteIds
                         screenModel.toggleFavorite(gameId)
                         toastState.show(
-                            if (wasAdded) "Added to favorites" else "Removed from favorites",
+                            if (wasAdded) strings.addedToFavorites else strings.removedFromFavorites,
                             if (wasAdded) GameToastType.SUCCESS else GameToastType.INFO
                         )
                     }

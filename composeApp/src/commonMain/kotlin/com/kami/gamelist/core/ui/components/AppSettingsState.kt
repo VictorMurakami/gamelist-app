@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.kami.gamelist.core.ui.model.AccentOption
 import com.kami.gamelist.core.ui.model.GridColumnsOption
+import com.kami.gamelist.core.ui.model.Language
 import com.kami.gamelist.core.ui.model.ThemeMode
 import com.kami.gamelist.data.local.CacheManager
 
@@ -17,6 +18,7 @@ class AppSettingsState(private val cacheManager: CacheManager) {
         private const val KEY_THEME = "pref_theme_mode"
         private const val KEY_ACCENT = "pref_accent_color"
         private const val KEY_GRID = "pref_grid_columns"
+        private const val KEY_LANGUAGE = "pref_language"
     }
 
     var themeMode by mutableStateOf(
@@ -34,6 +36,11 @@ class AppSettingsState(private val cacheManager: CacheManager) {
     )
         private set
 
+    var language by mutableStateOf(
+        Language.entries.getOrElse(cacheManager.getPreference(KEY_LANGUAGE)) { Language.EN }
+    )
+        private set
+
     fun updateThemeMode(mode: ThemeMode) {
         themeMode = mode
         cacheManager.setPreference(KEY_THEME, mode.ordinal)
@@ -47,6 +54,11 @@ class AppSettingsState(private val cacheManager: CacheManager) {
     fun updateGridColumns(columns: GridColumnsOption) {
         gridColumns = columns
         cacheManager.setPreference(KEY_GRID, columns.ordinal)
+    }
+
+    fun updateLanguage(lang: Language) {
+        language = lang
+        cacheManager.setPreference(KEY_LANGUAGE, lang.ordinal)
     }
 }
 

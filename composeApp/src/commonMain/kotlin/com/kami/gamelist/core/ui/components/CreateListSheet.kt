@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.modifier.pressScale
 import com.kami.gamelist.core.ui.theme.GameTheme
 
@@ -34,6 +35,7 @@ fun CreateListSheet(
     val sheetState = rememberModalBottomSheetState()
     var name by remember { mutableStateOf("") }
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -46,7 +48,7 @@ fun CreateListSheet(
     ) {
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
             Text(
-                text = "NEW LIST",
+                text = strings.newList,
                 style = GameTheme.typography.headlineSmall,
                 color = colors.accent
             )
@@ -58,7 +60,7 @@ fun CreateListSheet(
                 onValueChange = { name = it },
                 label = {
                     Text(
-                        "List name",
+                        strings.listName,
                         style = GameTheme.typography.labelMedium,
                         color = colors.textMuted
                     )
@@ -102,7 +104,7 @@ fun CreateListSheet(
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     Text(
-                        text = "CREATE",
+                        text = strings.create,
                         style = GameTheme.typography.labelLarge,
                         color = if (name.isNotBlank()) colors.accent else colors.textMuted
                     )

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Tune
@@ -54,6 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kami.gamelist.core.ui.components.ConfirmationDialog
 import com.kami.gamelist.core.ui.components.LocalAppSettings
+import com.kami.gamelist.core.ui.localization.AppStrings
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.components.LocalUserPreferences
 import com.kami.gamelist.core.ui.components.GameToastType
 import com.kami.gamelist.core.ui.components.LocalGameToastState
@@ -61,6 +64,7 @@ import com.kami.gamelist.core.ui.components.SectionHeader
 import com.kami.gamelist.core.ui.components.UserPreferencesState
 import com.kami.gamelist.core.ui.model.AccentOption
 import com.kami.gamelist.core.ui.model.GridColumnsOption
+import com.kami.gamelist.core.ui.model.Language
 import com.kami.gamelist.core.ui.model.PlatformPreference
 import com.kami.gamelist.core.ui.model.ThemeMode
 import com.kami.gamelist.core.ui.theme.GameTheme
@@ -71,6 +75,7 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
     val toastState = LocalGameToastState.current
     val settings = LocalAppSettings.current
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
     var showClearCacheDialog by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
 
@@ -79,17 +84,17 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        SectionHeader(title = "Settings")
+        SectionHeader(title = strings.settings)
 
-        SectionLabel("APPEARANCE")
+        SectionLabel(strings.appearance)
 
         SettingsItem(
             icon = Icons.Outlined.Palette,
-            title = "Theme",
-            subtitle = "Choose app appearance",
+            title = strings.theme,
+            subtitle = strings.chooseAppearance,
         )
         OptionChipRow(
-            options = ThemeMode.entries.map { it.label() },
+            options = ThemeMode.entries.map { it.label(strings) },
             selectedIndex = settings.themeMode.ordinal,
             onSelect = { settings.updateThemeMode(ThemeMode.entries[it]) },
         )
@@ -98,14 +103,14 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 
         SettingsItem(
             icon = Icons.Outlined.Palette,
-            title = "Accent color",
-            subtitle = "Primary color across the app",
+            title = strings.accentColor,
+            subtitle = strings.primaryColorDesc,
         )
         AccentColorRow(
             selected = settings.accentOption,
             onSelect = {
                 settings.updateAccentOption(it)
-                toastState.show("Accent color updated", GameToastType.SUCCESS)
+                toastState.show(strings.accentUpdated, GameToastType.SUCCESS)
             },
         )
 
@@ -113,13 +118,26 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 
         SettingsItem(
             icon = Icons.Outlined.GridView,
-            title = "Grid layout",
-            subtitle = "Game card columns",
+            title = strings.gridLayout,
+            subtitle = strings.gameCardColumns,
         )
         OptionChipRow(
-            options = GridColumnsOption.entries.map { it.label() },
+            options = GridColumnsOption.entries.map { it.label(strings) },
             selectedIndex = settings.gridColumns.ordinal,
             onSelect = { settings.updateGridColumns(GridColumnsOption.entries[it]) },
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SettingsItem(
+            icon = Icons.Outlined.Language,
+            title = strings.language,
+            subtitle = strings.appLanguage,
+        )
+        OptionChipRow(
+            options = Language.entries.map { it.displayName },
+            selectedIndex = settings.language.ordinal,
+            onSelect = { settings.updateLanguage(Language.entries[it]) },
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -132,12 +150,12 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
         HorizontalDivider(color = colors.borderSubtle, modifier = Modifier.padding(horizontal = 16.dp))
         Spacer(modifier = Modifier.height(8.dp))
 
-        SectionLabel("DATA")
+        SectionLabel(strings.data)
 
         SettingsItem(
             icon = Icons.Outlined.DeleteSweep,
-            title = "Clear game cache",
-            subtitle = "Forces re-download of game data on next visit",
+            title = strings.clearGameCache,
+            subtitle = strings.clearGameCacheDesc,
             onClick = { showClearCacheDialog = true }
         )
 
@@ -145,8 +163,8 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 
         SettingsItem(
             icon = Icons.Outlined.History,
-            title = "Clear search history",
-            subtitle = "Removes all recent search queries",
+            title = strings.clearSearchHistory,
+            subtitle = strings.clearSearchHistoryDesc,
             onClick = { showClearHistoryDialog = true }
         )
 
@@ -154,11 +172,11 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 
         SettingsItem(
             icon = Icons.Outlined.Refresh,
-            title = "Reset onboarding",
-            subtitle = "Show the welcome screen again on next launch",
+            title = strings.resetOnboarding,
+            subtitle = strings.resetOnboardingDesc,
             onClick = {
                 screenModel.resetOnboarding()
-                toastState.show("Onboarding will show on next launch", GameToastType.INFO)
+                toastState.show(strings.onboardingWillShow, GameToastType.INFO)
             }
         )
 
@@ -166,12 +184,12 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
         HorizontalDivider(color = colors.borderSubtle, modifier = Modifier.padding(horizontal = 16.dp))
         Spacer(modifier = Modifier.height(8.dp))
 
-        SectionLabel("ABOUT")
+        SectionLabel(strings.about)
 
         SettingsItem(
             icon = Icons.Outlined.Info,
-            title = "GameList",
-            subtitle = "v1.0.0 — Free-to-Play game catalog powered by FreeToGame API",
+            title = strings.appTitle,
+            subtitle = strings.aboutDescription,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -179,12 +197,12 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 
     if (showClearCacheDialog) {
         ConfirmationDialog(
-            title = "Clear game cache?",
-            message = "Game data will be re-downloaded on next visit.",
-            confirmLabel = "Clear",
+            title = strings.clearCacheQuestion,
+            message = strings.clearCacheMessage,
+            confirmLabel = strings.delete,
             onConfirm = {
                 screenModel.clearGameCache()
-                toastState.show("Game cache cleared", GameToastType.SUCCESS)
+                toastState.show(strings.gameCacheCleared, GameToastType.SUCCESS)
             },
             onDismiss = { showClearCacheDialog = false }
         )
@@ -192,12 +210,12 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 
     if (showClearHistoryDialog) {
         ConfirmationDialog(
-            title = "Clear search history?",
-            message = "All recent searches will be removed.",
-            confirmLabel = "Clear",
+            title = strings.clearHistoryQuestion,
+            message = strings.clearHistoryMessage,
+            confirmLabel = strings.delete,
             onConfirm = {
                 screenModel.clearSearchHistory()
-                toastState.show("Search history cleared", GameToastType.SUCCESS)
+                toastState.show(strings.searchHistoryCleared, GameToastType.SUCCESS)
             },
             onDismiss = { showClearHistoryDialog = false }
         )
@@ -208,14 +226,21 @@ fun SettingsScreen(screenModel: SettingsScreenModel) {
 @Composable
 private fun PreferencesSection() {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
     val preferences = LocalUserPreferences.current
 
-    SectionLabel("PREFERENCES")
+    val platformLabels = mapOf(
+        PlatformPreference.ALL to strings.platformAll,
+        PlatformPreference.PC to strings.platformPC,
+        PlatformPreference.BROWSER to strings.platformBrowser,
+    )
+
+    SectionLabel(strings.preferences)
 
     SettingsItem(
         icon = Icons.Outlined.Tune,
-        title = "Favorite genres",
-        subtitle = "Used for recommendations",
+        title = strings.favoriteGenres,
+        subtitle = strings.usedForRecommendations,
     )
 
     FlowRow(
@@ -248,12 +273,12 @@ private fun PreferencesSection() {
 
     SettingsItem(
         icon = Icons.Outlined.Tune,
-        title = "Platform",
-        subtitle = "Filter games by platform",
+        title = strings.platform,
+        subtitle = strings.filterByPlatform,
     )
 
     OptionChipRow(
-        options = PlatformPreference.entries.map { it.label },
+        options = PlatformPreference.entries.map { platformLabels.getValue(it) },
         selectedIndex = preferences.platformPreference.ordinal,
         onSelect = { preferences.updatePlatform(PlatformPreference.entries[it]) },
     )
@@ -405,14 +430,14 @@ private fun AccentColorRow(
     }
 }
 
-private fun ThemeMode.label() = when (this) {
-    ThemeMode.DARK -> "Dark"
-    ThemeMode.LIGHT -> "Light"
-    ThemeMode.SYSTEM -> "System"
+private fun ThemeMode.label(strings: AppStrings) = when (this) {
+    ThemeMode.DARK -> strings.themeDark
+    ThemeMode.LIGHT -> strings.themeLight
+    ThemeMode.SYSTEM -> strings.themeSystem
 }
 
-private fun GridColumnsOption.label() = when (this) {
-    GridColumnsOption.ADAPTIVE -> "Auto"
-    GridColumnsOption.TWO -> "2 Col"
-    GridColumnsOption.THREE -> "3 Col"
+private fun GridColumnsOption.label(strings: AppStrings) = when (this) {
+    GridColumnsOption.ADAPTIVE -> strings.gridAuto
+    GridColumnsOption.TWO -> strings.gridTwoCol
+    GridColumnsOption.THREE -> strings.gridThreeCol
 }

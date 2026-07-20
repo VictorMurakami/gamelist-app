@@ -53,6 +53,7 @@ import com.kami.gamelist.core.ui.components.ScreenshotCarousel
 import com.kami.gamelist.core.ui.components.SectionHeader
 import com.kami.gamelist.core.ui.components.shimmerEffect
 import com.kami.gamelist.core.ui.model.GameDetailUi
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.theme.GameTheme
 import org.koin.core.parameter.parametersOf
 
@@ -70,6 +71,7 @@ data class GameDetailNavScreen(val gameId: Int) : Screen {
         val showListSelector by screenModel.showListSelector.collectAsState()
         val toastState = LocalGameToastState.current
         val colors = GameTheme.colors
+        val strings = LocalStrings.current
 
         Scaffold(
             containerColor = colors.backgroundDark,
@@ -93,7 +95,7 @@ data class GameDetailNavScreen(val gameId: Int) : Screen {
                                 val wasAdded = !isFavorite
                                 screenModel.toggleFavorite()
                                 toastState.show(
-                                    if (wasAdded) "Added to favorites" else "Removed from favorites",
+                                    if (wasAdded) strings.addedToFavorites else strings.removedFromFavorites,
                                     if (wasAdded) GameToastType.SUCCESS else GameToastType.INFO
                                 )
                             },
@@ -158,6 +160,7 @@ data class GameDetailNavScreen(val gameId: Int) : Screen {
 @Composable
 private fun GameDetailContent(detail: GameDetailUi, modifier: Modifier = Modifier) {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     Column(
         modifier = modifier
@@ -216,37 +219,37 @@ private fun GameDetailContent(detail: GameDetailUi, modifier: Modifier = Modifie
 
             if (detail.screenshots.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionHeader(title = "Screenshots", horizontalPadding = 0.dp)
+                SectionHeader(title = strings.screenshots, horizontalPadding = 0.dp)
                 Spacer(modifier = Modifier.height(8.dp))
                 ScreenshotCarousel(screenshots = detail.screenshots)
             }
 
             detail.systemRequirements?.let { reqs ->
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionHeader(title = "System Requirements", horizontalPadding = 0.dp)
+                SectionHeader(title = strings.systemRequirements, horizontalPadding = 0.dp)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                reqs.os?.let { SystemReqRow("OS", it) }
-                reqs.processor?.let { SystemReqRow("Processor", it) }
-                reqs.memory?.let { SystemReqRow("Memory", it) }
-                reqs.graphics?.let { SystemReqRow("Graphics", it) }
-                reqs.storage?.let { SystemReqRow("Storage", it) }
+                reqs.os?.let { SystemReqRow(strings.os, it) }
+                reqs.processor?.let { SystemReqRow(strings.processor, it) }
+                reqs.memory?.let { SystemReqRow(strings.memory, it) }
+                reqs.graphics?.let { SystemReqRow(strings.graphics, it) }
+                reqs.storage?.let { SystemReqRow(strings.storage, it) }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Row {
-                DetailLabel("Publisher")
+                DetailLabel(strings.publisher)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(detail.publisher, style = GameTheme.typography.bodyMedium, color = colors.textSecondary)
             }
             Row {
-                DetailLabel("Developer")
+                DetailLabel(strings.developer)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(detail.developer, style = GameTheme.typography.bodyMedium, color = colors.textSecondary)
             }
             Row {
-                DetailLabel("Release")
+                DetailLabel(strings.release)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(detail.releaseDate, style = GameTheme.typography.bodyMedium, color = colors.textSecondary)
             }

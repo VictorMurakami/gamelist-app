@@ -24,6 +24,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.kami.gamelist.core.ui.components.GameGrid
 import com.kami.gamelist.core.ui.components.GameToastType
 import com.kami.gamelist.core.ui.components.LocalGameToastState
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.theme.GameTheme
 import com.kami.gamelist.feature.detail.GameDetailNavScreen
 import org.koin.core.parameter.parametersOf
@@ -42,6 +43,13 @@ data class SeeAllNavScreen(
         val favoriteIds by screenModel.favoriteIds.collectAsState()
         val toastState = LocalGameToastState.current
         val colors = GameTheme.colors
+        val strings = LocalStrings.current
+
+        val sectionTitle = when (section) {
+            HomeSection.RECENT -> strings.recentReleases
+            HomeSection.POPULAR -> strings.popularNow
+            HomeSection.RECOMMENDED -> strings.forYou
+        }
 
         Scaffold(
             containerColor = colors.backgroundDark,
@@ -50,7 +58,7 @@ data class SeeAllNavScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = section.displayTitle.uppercase(),
+                            text = sectionTitle.uppercase(),
                             style = GameTheme.typography.headlineSmall,
                             color = colors.textPrimary
                         )
@@ -80,7 +88,7 @@ data class SeeAllNavScreen(
                         val wasAdded = gameId !in favoriteIds
                         screenModel.toggleFavorite(gameId)
                         toastState.show(
-                            if (wasAdded) "Added to favorites" else "Removed from favorites",
+                            if (wasAdded) strings.addedToFavorites else strings.removedFromFavorites,
                             if (wasAdded) GameToastType.SUCCESS else GameToastType.INFO
                         )
                     }

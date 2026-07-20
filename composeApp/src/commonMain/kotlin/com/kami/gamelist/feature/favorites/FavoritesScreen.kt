@@ -25,6 +25,7 @@ import com.kami.gamelist.core.ui.components.GameGrid
 import com.kami.gamelist.core.ui.components.GameToastType
 import com.kami.gamelist.core.ui.components.LocalGameToastState
 import com.kami.gamelist.core.ui.components.SectionHeader
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.theme.GameTheme
 import com.kami.gamelist.feature.detail.GameDetailNavScreen
 
@@ -36,15 +37,21 @@ fun FavoritesScreen(screenModel: FavoritesScreenModel) {
     val sortOption by screenModel.sortOption.collectAsState()
     val toastState = LocalGameToastState.current
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
+
+    val sortLabels = mapOf(
+        FavoriteSortOption.RECENTLY_ADDED to strings.sortRecent,
+        FavoriteSortOption.NAME_ASC to strings.sortAZ,
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         SectionHeader(
-            title = if (favorites.isEmpty()) "Favorites" else "Favorites (${favorites.size})"
+            title = if (favorites.isEmpty()) strings.favorites else strings.favoritesCount(favorites.size)
         )
 
         if (favorites.isNotEmpty()) {
             Text(
-                text = "SORT",
+                text = strings.sort,
                 style = GameTheme.typography.labelSmall,
                 color = colors.textMuted,
                 modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
@@ -57,7 +64,7 @@ fun FavoritesScreen(screenModel: FavoritesScreenModel) {
             ) {
                 FavoriteSortOption.entries.forEach { option ->
                     GameChip(
-                        label = option.label,
+                        label = sortLabels.getValue(option),
                         selected = option == sortOption,
                         onClick = { screenModel.setSortOption(option) }
                     )
@@ -69,8 +76,8 @@ fun FavoritesScreen(screenModel: FavoritesScreenModel) {
         if (favorites.isEmpty()) {
             EmptyState(
                 icon = Icons.Outlined.FavoriteBorder,
-                title = "No favorites yet",
-                subtitle = "Tap the heart on a game to add it here"
+                title = strings.noFavoritesYet,
+                subtitle = strings.tapHeartToAdd
             )
         } else {
             GameGrid(
@@ -81,12 +88,12 @@ fun FavoritesScreen(screenModel: FavoritesScreenModel) {
                     val wasAdded = gameId !in favoriteIds
                     screenModel.toggleFavorite(gameId)
                     if (wasAdded) {
-                        toastState.show("Added to favorites", GameToastType.SUCCESS)
+                        toastState.show(strings.addedToFavorites, GameToastType.SUCCESS)
                     } else {
                         toastState.show(
-                            message = "Removed from favorites",
+                            message = strings.removedFromFavorites,
                             type = GameToastType.INFO,
-                            actionLabel = "Undo",
+                            actionLabel = strings.undo,
                             onAction = { screenModel.toggleFavorite(gameId) }
                         )
                     }

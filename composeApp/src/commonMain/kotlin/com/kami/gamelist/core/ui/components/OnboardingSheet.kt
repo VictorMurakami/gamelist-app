@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.model.PlatformPreference
 import com.kami.gamelist.core.ui.theme.GameTheme
 
@@ -87,6 +88,7 @@ fun OnboardingSheet(
 @Composable
 private fun WelcomeStep(onContinue: () -> Unit) {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     Column(
         modifier = Modifier
@@ -95,7 +97,7 @@ private fun WelcomeStep(onContinue: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "GAMELIST",
+            text = strings.appTitle,
             style = GameTheme.typography.headlineLarge,
             color = colors.accent
         )
@@ -103,20 +105,20 @@ private fun WelcomeStep(onContinue: () -> Unit) {
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Your free-to-play game catalog",
+            text = strings.welcomeSubtitle,
             style = GameTheme.typography.bodyMedium,
             color = colors.textMuted
         )
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        FeatureRow(Icons.Outlined.SportsEsports, "Browse", "Explore hundreds of free-to-play games")
+        FeatureRow(Icons.Outlined.SportsEsports, strings.featureBrowse, strings.featureBrowseDesc)
         Spacer(modifier = Modifier.height(16.dp))
-        FeatureRow(Icons.Outlined.FilterList, "Filter", "Find games by genre and platform")
+        FeatureRow(Icons.Outlined.FilterList, strings.featureFilter, strings.featureFilterDesc)
         Spacer(modifier = Modifier.height(16.dp))
-        FeatureRow(Icons.Outlined.FavoriteBorder, "Favorite", "Tap the heart on any card to save it")
+        FeatureRow(Icons.Outlined.FavoriteBorder, strings.featureFavorite, strings.featureFavoriteDesc)
         Spacer(modifier = Modifier.height(16.dp))
-        FeatureRow(Icons.Outlined.Search, "Search", "Quickly find any game by name")
+        FeatureRow(Icons.Outlined.Search, strings.featureSearch, strings.featureSearchDesc)
 
         Spacer(modifier = Modifier.height(28.dp))
 
@@ -134,7 +136,7 @@ private fun WelcomeStep(onContinue: () -> Unit) {
             )
         ) {
             Text(
-                text = "Continue",
+                text = strings.continueButton,
                 style = GameTheme.typography.titleSmall,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
@@ -148,6 +150,7 @@ private fun WelcomeStep(onContinue: () -> Unit) {
 @Composable
 private fun PreferencesStep(onDone: () -> Unit) {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
     val preferences = LocalUserPreferences.current
 
     Column(
@@ -158,7 +161,7 @@ private fun PreferencesStep(onDone: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Customize Your Feed",
+            text = strings.customizeFeed,
             style = GameTheme.typography.headlineSmall,
             color = colors.textPrimary
         )
@@ -166,7 +169,7 @@ private fun PreferencesStep(onDone: () -> Unit) {
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Pick genres you enjoy",
+            text = strings.pickGenres,
             style = GameTheme.typography.bodyMedium,
             color = colors.textMuted
         )
@@ -190,13 +193,19 @@ private fun PreferencesStep(onDone: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Preferred Platform",
+            text = strings.preferredPlatform,
             style = GameTheme.typography.titleSmall,
             color = colors.textPrimary,
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
+
+        val platformLabels = mapOf(
+            PlatformPreference.ALL to strings.platformAll,
+            PlatformPreference.PC to strings.platformPC,
+            PlatformPreference.BROWSER to strings.platformBrowser,
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -218,7 +227,7 @@ private fun PreferencesStep(onDone: () -> Unit) {
                         modifier = Modifier.padding(vertical = 10.dp)
                     ) {
                         Text(
-                            text = platform.label,
+                            text = platformLabels.getValue(platform),
                             style = GameTheme.typography.labelSmall,
                             color = if (isSelected) colors.accent else colors.textSecondary,
                             textAlign = TextAlign.Center,
@@ -244,7 +253,7 @@ private fun PreferencesStep(onDone: () -> Unit) {
             )
         ) {
             Text(
-                text = "Get Started",
+                text = strings.getStarted,
                 style = GameTheme.typography.titleSmall,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
@@ -253,7 +262,7 @@ private fun PreferencesStep(onDone: () -> Unit) {
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "You can change these in Settings",
+            text = strings.changeInSettings,
             style = GameTheme.typography.bodySmall,
             color = colors.textMuted,
             textAlign = TextAlign.Center,

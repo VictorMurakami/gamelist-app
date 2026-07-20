@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.model.ListUi
 import com.kami.gamelist.core.ui.theme.GameTheme
 
@@ -33,6 +34,7 @@ fun ListSelector(
 ) {
     val sheetState = rememberModalBottomSheetState()
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -45,7 +47,7 @@ fun ListSelector(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "ADD TO LIST",
+                text = strings.addToList,
                 style = GameTheme.typography.headlineSmall,
                 color = colors.accent
             )

@@ -38,6 +38,8 @@ fun GameListTheme(
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
 
+    PlatformThemeEffect(isDark)
+
     val gameColors = if (isDark) darkGameColors(accentOption) else lightGameColors(accentOption)
     val materialScheme = if (isDark) materialDarkScheme(gameColors) else materialLightScheme(gameColors)
     val typography = gameListTypography()

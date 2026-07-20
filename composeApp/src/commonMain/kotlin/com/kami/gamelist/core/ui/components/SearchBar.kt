@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.ui.localization.LocalStrings
 import com.kami.gamelist.core.ui.model.SearchHistoryUi
 import com.kami.gamelist.core.ui.theme.GameTheme
 
@@ -39,6 +40,7 @@ fun GameSearchBar(
     modifier: Modifier = Modifier
 ) {
     val colors = GameTheme.colors
+    val strings = LocalStrings.current
     val focusManager = LocalFocusManager.current
 
     Column(modifier = modifier) {
@@ -50,7 +52,7 @@ fun GameSearchBar(
                 .padding(horizontal = 16.dp),
             placeholder = {
                 Text(
-                    "Search games...",
+                    strings.searchPlaceholder,
                     style = GameTheme.typography.bodyMedium,
                     color = colors.textMuted
                 )

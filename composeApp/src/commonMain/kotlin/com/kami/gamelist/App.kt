@@ -23,6 +23,9 @@ import com.kami.gamelist.core.ui.components.OnboardingSheet
 import com.kami.gamelist.core.ui.components.ScrollToTopState
 import com.kami.gamelist.core.ui.components.UserPreferencesState
 import com.kami.gamelist.core.ui.components.rememberGameToastState
+import com.kami.gamelist.core.ui.localization.AppStrings
+import com.kami.gamelist.core.ui.localization.LocalStrings
+import com.kami.gamelist.core.ui.model.Language
 import com.kami.gamelist.core.ui.theme.GameListTheme
 import com.kami.gamelist.data.local.CacheManager
 import com.kami.gamelist.data.model.ListType
@@ -40,6 +43,11 @@ fun App() {
     val userPreferencesState = remember { UserPreferencesState(cacheManager) }
     val scrollToTopState = remember { ScrollToTopState() }
     var showOnboarding by remember { mutableStateOf(false) }
+
+    val strings = when (settingsState.language) {
+        Language.EN -> AppStrings.En
+        Language.PT_BR -> AppStrings.PtBr
+    }
 
     LaunchedEffect(Unit) {
         val lists = userRepository.observeLists().first()
@@ -64,6 +72,7 @@ fun App() {
             LocalAppSettings provides settingsState,
             LocalUserPreferences provides userPreferencesState,
             LocalScrollToTop provides scrollToTopState,
+            LocalStrings provides strings,
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 AppNavigator()
