@@ -15,6 +15,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ListsScreenModelTest {
@@ -47,7 +48,9 @@ class ListsScreenModelTest {
                 result = awaitItem()
             }
             assertEquals(2, result.size)
-            assertEquals("Jogando", result[0].name)
+            val names = result.map { it.name }.toSet()
+            assertTrue(names.contains("Jogando"))
+            assertTrue(names.contains("Quero Jogar"))
             cancelAndIgnoreRemainingEvents()
         }
     }
