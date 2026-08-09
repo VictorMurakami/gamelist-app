@@ -1,0 +1,71 @@
+package com.kami.gamelist.core.config
+
+import com.kami.gamelist.data.local.TextPrefDataSource
+import com.kami.gamelist.data.remote.dto.AppConfigDto
+import kotlinx.serialization.json.Json
+
+class AppConfigRepository(
+    private val api: AppConfigApi,
+    private val textPrefs: TextPrefDataSource,
+    private val deviceIdProvider: DeviceIdProvider,
+    private val appInfo: AppInfo,
+) {
+
+    companion object {
+        private const val CACHE_KEY = "app_config_cache"
+    }
+
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+
+    /**
+     * Busca a config no backend, cacheia, e cai para o cache em qualquer falha.
+     *
+     * Nunca lanca. Sem rede e sem cache devolve AppConfigState.EMPTY, que
+     * deixa o app abrir normalmente — a alternativa seria travar o usuario
+     * por causa de um problema do servidor.
+     */
+    suspend fun load(lang: String): AppConfigState {
+        val fetched = runCatching {
+            api.fetch(
+                platform = appInfo.platform,
+                version = appInfo.version,
+                deviceId = deviceIdProvider.deviceId(),
+                lang = lang,
+            )
+        }.getOrNull()
+
+        if (fetched != null) {
+            runCatching { textPrefs.set(CACHE_KEY, json.encodeToString(fetched)) }
+            return fetched.toState()
+        }
+
+        return cachedState() ?: AppConfigState.EMPTY
+    }
+
+    private fun cachedState(): AppConfigState? {
+        val raw = textPrefs.get(CACHE_KEY) ?: return null
+        return runCatching { json.decodeFromString<AppConfigDto>(raw).toState() }.getOrNull()
+    }
+}
+
+private fun AppConfigDto.toState() = AppConfigState(
+    update = UpdateInfo(
+        status = update.status.toUpdateStatus(),
+        latestVersion = update.latestVersion,
+        storeUrl = update.storeUrl,
+        changelog = update.changelog,
+    ),
+    maintenance = MaintenanceInfo(
+        active = maintenance.active,
+        message = maintenance.message,
+    ),
+    flags = flags,
+    issuer = auth.issuer,
+    clientId = auth.clientId,
+)
+
+private fun String.toUpdateStatus(): UpdateStatus = when (this) {
+    "forced" -> UpdateStatus.FORCED
+    "recommended" -> UpdateStatus.RECOMMENDED
+    else -> UpdateStatus.NONE
+}
