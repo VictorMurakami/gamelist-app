@@ -4,10 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -51,10 +54,20 @@ fun ForceUpdateScreen(
     // center within. When the Column is taller than the viewport (e.g. a long
     // changelog), the same relaxed max lets it grow past one screen and the
     // scroll clips/pans over it instead of Compose silently clipping content.
+    //
+    // windowInsetsPadding(safeDrawing) sits between background() and
+    // verticalScroll() on purpose: this screen has no Scaffold (a Scaffold's
+    // own inset handling would work too, but pulls in a TopAppBar/dismiss
+    // surface that has no place on a no-escape screen), so it must apply its
+    // own inset padding or the icon/title render under the status bar with a
+    // long changelog. Applying it before the background would have shrunk
+    // the background too, breaking the edge-to-edge fill; applying it here
+    // only insets the content, not the colored surface behind it.
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.backgroundDark)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {

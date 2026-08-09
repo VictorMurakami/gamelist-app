@@ -49,6 +49,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
 
+// AppConfigRepository.load() se limita internamente (ver FETCH_TIMEOUT_MS
+// nessa classe) a um teto menor que este, entao ele sempre resolve — com um
+// resultado real ou EMPTY — antes deste teto poder disparar, mesmo contra um
+// host que aceita a conexao e nunca responde. Ver o comentario ao lado de
+// FETCH_TIMEOUT_MS para o porque desse limite viver no repository e nao aqui.
+private const val SPLASH_CEILING_MS = 3_000L
+
 @Composable
 fun App() {
     val userRepository = koinInject<UserRepository>()
@@ -112,7 +119,7 @@ fun App() {
     LaunchedEffect(Unit) {
         // Teto de tempo: um backend lento (de jogos ou de config) nao pode
         // prender o usuario no splash indefinidamente.
-        delay(3000)
+        delay(SPLASH_CEILING_MS)
         splashReady = true
     }
 

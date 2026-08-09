@@ -4,10 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,10 +47,16 @@ fun MaintenanceScreen(maintenance: MaintenanceInfo) {
     // it preserves a min-height == viewport constraint that lets Alignment.Center
     // still center short content, while the relaxed max lets a long message grow
     // and scroll instead of being clipped.
+    //
+    // windowInsetsPadding(safeDrawing) sits between background() and
+    // verticalScroll() on purpose: see ForceUpdateScreen for why (no
+    // Scaffold on a no-escape screen, background stays edge-to-edge, only
+    // the content gets inset).
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.backgroundDark)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {
