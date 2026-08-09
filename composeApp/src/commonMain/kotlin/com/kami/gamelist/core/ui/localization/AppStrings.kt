@@ -435,7 +435,7 @@ data class AppStrings(
 
             updateRequiredTitle = "Atualização necessária",
             updateRequiredMessage = "Esta versão não é mais suportada. Atualize para continuar jogando.",
-            updateNow = "Atualizar agora",
+            updateNow = "Atualizar Agora",
             maintenanceTitle = "Em manutenção",
             maintenanceDefaultMessage = "Voltamos em breve. Obrigado pela paciência.",
             updateAvailableTitle = "Atualização disponível",
