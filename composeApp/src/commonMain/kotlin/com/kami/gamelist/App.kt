@@ -44,6 +44,7 @@ import com.kami.gamelist.data.repository.SyncState
 import com.kami.gamelist.data.repository.UserRepository
 import com.kami.gamelist.feature.gate.ForceUpdateScreen
 import com.kami.gamelist.feature.gate.MaintenanceScreen
+import com.kami.gamelist.feature.gate.UpdateAvailableSheet
 import com.kami.gamelist.feature.navigation.AppNavigator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -68,6 +69,7 @@ fun App() {
     val userPreferencesState = remember { UserPreferencesState(cacheManager) }
     val scrollToTopState = remember { ScrollToTopState() }
     var showOnboarding by remember { mutableStateOf(false) }
+    var showUpdatePrompt by remember { mutableStateOf(false) }
     var splashReady by remember { mutableStateOf(false) }
     // null enquanto a config ainda nao chegou (nem do backend, nem do cache,
     // nem do EMPTY de fallback) — usado so para segurar o splash mais abaixo.
@@ -104,6 +106,26 @@ fun App() {
             Language.EN -> "en"
         }
         appConfig = appConfigRepository.load(lang)
+    }
+
+    // Chave appConfig (nao showOnboarding): dispara uma unica vez quando a
+    // config chega, lendo showOnboarding nesse instante. A checagem local de
+    // onboarding acima e sempre mais rapida que essa carga de rede, entao
+    // showOnboarding ja esta decidido aqui. Se estiver true (onboarding
+    // ativo), o aviso simplesmente nao e agendado nesta sessao — ele nao
+    // reage a um showOnboarding que vira false depois, entao dispensar o
+    // onboarding nao faz o aviso aparecer na mesma abertura; ele espera a
+    // proxima.
+    LaunchedEffect(appConfig) {
+        val config = appConfig ?: return@LaunchedEffect
+        val latestVersion = config.update.latestVersion
+        if (!showOnboarding &&
+            config.update.status == UpdateStatus.RECOMMENDED &&
+            latestVersion != null &&
+            !cacheManager.isUpdateDismissed(latestVersion)
+        ) {
+            showUpdatePrompt = true
+        }
     }
 
     LaunchedEffect(syncState, appConfig) {
@@ -164,6 +186,17 @@ fun App() {
                         onDismiss = {
                             showOnboarding = false
                             cacheManager.markOnboardingSeen()
+                        }
+                    )
+                }
+
+                if (showUpdatePrompt && !showOnboarding && !isForcedUpdate && !isMaintenance) {
+                    UpdateAvailableSheet(
+                        update = config!!.update,
+                        onUpdate = { config.update.storeUrl?.let(urlOpener::open) },
+                        onDismiss = {
+                            showUpdatePrompt = false
+                            config.update.latestVersion?.let(cacheManager::markUpdateDismissed)
                         }
                     )
                 }
