@@ -2,8 +2,6 @@ package com.kami.gamelist.core.config
 
 import com.kami.gamelist.data.local.TextPrefDataSource
 import com.kami.gamelist.data.remote.dto.AppConfigDto
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
@@ -46,29 +44,15 @@ class AppConfigRepository(
         // nunca responde) por mais que FETCH_TIMEOUT_MS faria o usuario
         // perder um forced-update ou maintenance validos que estavam
         // cacheados, em vez de apenas ficar sem a atualizacao mais recente.
-        //
-        // withContext(Dispatchers.Default) aqui nao e cosmetico: o engine do
-        // Ktor despacha a chamada de rede no dispatcher proprio dele,
-        // independente do dispatcher do chamador. Sem esse withContext,
-        // withTimeoutOrNull ficaria com seu proprio delay() agendado no
-        // dispatcher do chamador — em runTest (AppConfigRepositoryTest), isso
-        // e um TestDispatcher de tempo virtual, que avanca sozinho assim que
-        // fica ocioso e dispara o timeout antes da resposta mockada (que
-        // chega de verdade, so que por outro dispatcher) ter chance de
-        // voltar. Sair para o Default tira o delay() do timeout de dentro do
-        // relogio virtual do teste, resolvendo o falso timeout sem tocar nos
-        // testes.
-        val fetched = withContext(Dispatchers.Default) {
-            withTimeoutOrNull(FETCH_TIMEOUT_MS) {
-                runCatching {
-                    api.fetch(
-                        platform = appInfo.platform,
-                        version = appInfo.version,
-                        deviceId = deviceIdProvider.deviceId(),
-                        lang = lang,
-                    )
-                }.getOrNull()
-            }
+        val fetched = withTimeoutOrNull(FETCH_TIMEOUT_MS) {
+            runCatching {
+                api.fetch(
+                    platform = appInfo.platform,
+                    version = appInfo.version,
+                    deviceId = deviceIdProvider.deviceId(),
+                    lang = lang,
+                )
+            }.getOrNull()
         }
 
         if (fetched != null) {

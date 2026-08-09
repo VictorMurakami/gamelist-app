@@ -9,6 +9,7 @@ import com.kami.gamelist.data.local.TextPrefDataSource
 import com.kami.gamelist.db.GameListDatabase
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
@@ -16,6 +17,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
@@ -54,13 +57,22 @@ class RepositoryModuleTest {
     @AfterTest
     fun tearDown() = stopKoin()
 
-    private fun mockJsonClient(body: String): HttpClient = HttpClient(MockEngine {
-        respond(
-            content = body,
-            status = HttpStatusCode.OK,
-            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-        )
-    }) {
+    // Ver o comentario equivalente em AppConfigRepositoryTest.repository(): o
+    // MockEngine precisa compartilhar o scheduler virtual do runTest, senao
+    // o withTimeoutOrNull dentro de AppConfigRepository.load() dispara antes
+    // da resposta mockada "chegar" pelo dispatcher real do engine.
+    private fun TestScope.mockJsonClient(body: String): HttpClient = HttpClient(
+        MockEngine(MockEngineConfig().apply {
+            dispatcher = StandardTestDispatcher(testScheduler)
+            addHandler {
+                respond(
+                    content = body,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
+            }
+        }),
+    ) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true; isLenient = true })
         }

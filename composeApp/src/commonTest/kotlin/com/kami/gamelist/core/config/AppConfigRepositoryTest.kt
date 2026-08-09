@@ -5,6 +5,7 @@ import com.kami.gamelist.data.local.TextPrefDataSource
 import com.kami.gamelist.db.GameListDatabase
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
@@ -12,6 +13,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.BeforeTest
@@ -48,19 +51,28 @@ class AppConfigRepositoryTest {
         }
     """.trimIndent()
 
-    private fun repository(
+    // Extensao de TestScope: o MockEngine precisa rodar no mesmo dispatcher
+    // virtual do runTest (StandardTestDispatcher(testScheduler)), senao a
+    // resposta mockada chega por um dispatcher real que o testScheduler nao
+    // enxerga -- ele acha a fila ociosa e adianta o relogio virtual, disparando
+    // o withTimeoutOrNull de AppConfigRepository.load() antes da resposta
+    // "chegar". Compartilhar o scheduler mantem os dois no mesmo relogio.
+    private fun TestScope.repository(
         body: String? = null,
         status: HttpStatusCode = HttpStatusCode.OK,
         failWith: Throwable? = null,
     ): AppConfigRepository {
-        val engine = MockEngine {
-            if (failWith != null) throw failWith
-            respond(
-                content = body.orEmpty(),
-                status = status,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-            )
-        }
+        val engine = MockEngine(MockEngineConfig().apply {
+            dispatcher = StandardTestDispatcher(testScheduler)
+            addHandler {
+                if (failWith != null) throw failWith
+                respond(
+                    content = body.orEmpty(),
+                    status = status,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
+            }
+        })
         val client = HttpClient(engine) {
             // Igual ao createBackend: 400 e 429 precisam virar excecao aqui,
             // senao os testes de erro passam pelo motivo errado.
