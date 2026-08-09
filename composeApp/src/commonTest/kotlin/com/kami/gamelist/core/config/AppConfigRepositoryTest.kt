@@ -135,7 +135,10 @@ class AppConfigRepositoryTest {
 
     @Test
     fun returnsEmptyStateOnBadRequest() = runTest {
-        val state = repository(body = "{}", status = HttpStatusCode.BadRequest).load("en")
+        // Corpo valido e totalmente decodificavel (status "forced") de proposito:
+        // se o cliente nao rejeitasse o 400 antes de decodificar, o teste passaria
+        // pelo motivo errado. Ver expectSuccess no helper `repository()`.
+        val state = repository(body = json("forced"), status = HttpStatusCode.BadRequest).load("en")
 
         assertEquals(UpdateStatus.NONE, state.update.status)
     }
@@ -143,7 +146,41 @@ class AppConfigRepositoryTest {
     @Test
     fun returnsEmptyStateOnThrottle() = runTest {
         // 429 e condicao rotineira: 120 req/min por IP, e um CGNAT compartilha IP.
-        val state = repository(body = "{}", status = HttpStatusCode.TooManyRequests).load("en")
+        // Corpo valido de proposito -- ver comentario em returnsEmptyStateOnBadRequest.
+        val state = repository(body = json("forced"), status = HttpStatusCode.TooManyRequests).load("en")
+
+        assertEquals(UpdateStatus.NONE, state.update.status)
+    }
+
+    @Test
+    fun returnsEmptyStateWhenUpdateBlockMissing() = runTest {
+        // Falha no nivel de schema (bloco ausente), diferente de JSON malformado:
+        // um deploy de backend que remove um campo, ou uma resposta truncada.
+        val body = """{ "maintenance": {"active": false}, "auth": {"issuer": "i", "client_id": "c"} }"""
+
+        val state = repository(body = body).load("en")
+
+        assertEquals(UpdateStatus.NONE, state.update.status)
+    }
+
+    @Test
+    fun returnsEmptyStateWhenMaintenanceBlockMissing() = runTest {
+        // "status": "forced" e deliberado: se maintenance virasse opcional com
+        // default, FORCED vazaria e este teste pegaria.
+        val body = """{ "update": {"status": "forced"}, "auth": {"issuer": "i", "client_id": "c"} }"""
+
+        val state = repository(body = body).load("en")
+
+        assertEquals(UpdateStatus.NONE, state.update.status)
+    }
+
+    @Test
+    fun returnsEmptyStateWhenAuthBlockMissing() = runTest {
+        // "status": "forced" e deliberado: se auth virasse opcional com
+        // default, FORCED vazaria e este teste pegaria.
+        val body = """{ "update": {"status": "forced"}, "maintenance": {"active": false} }"""
+
+        val state = repository(body = body).load("en")
 
         assertEquals(UpdateStatus.NONE, state.update.status)
     }
