@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        Dev-only: permite trafego HTTP (cleartext) apenas para os hosts do
+        backend local. 10.0.2.2 e como o emulador Android enxerga o
+        localhost da maquina host (ver BackendConfig.android.kt); localhost
+        cobre execucao em runtime jvm/testes locais na mesma maquina.
+        Nenhum outro host recebe esse tratamento, e nao ha base-config
+        global — release builds contra hosts reais continuam exigindo TLS.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>
