@@ -4,6 +4,7 @@ import android.app.Application
 import com.kami.gamelist.core.database.DriverFactory
 import com.kami.gamelist.core.di.appModules
 import com.kami.gamelist.core.network.ConnectivityMonitor
+import com.kami.gamelist.core.platform.UrlOpener
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -17,6 +18,7 @@ class GameListApplication : Application() {
             modules(module {
                 single { DriverFactory(get()) }
                 single { ConnectivityMonitor(get()) }
+                single { UrlOpener(get()) }
             })
         }
     }
