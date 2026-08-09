@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material3.Icon
@@ -38,8 +40,15 @@ fun MaintenanceScreen(maintenance: MaintenanceInfo) {
         ?.takeIf { it.isNotBlank() }
         ?: strings.maintenanceDefaultMessage
 
+    // See ForceUpdateScreen for why fillMaxSize() must precede verticalScroll():
+    // it preserves a min-height == viewport constraint that lets Alignment.Center
+    // still center short content, while the relaxed max lets a long message grow
+    // and scroll instead of being clipped.
     Box(
-        modifier = Modifier.fillMaxSize().background(colors.backgroundDark),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.backgroundDark)
+            .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {
         Column(

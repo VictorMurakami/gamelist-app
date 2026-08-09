@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.Button
@@ -40,8 +42,20 @@ fun ForceUpdateScreen(
     val colors = GameTheme.colors
     val strings = LocalStrings.current
 
+    // fillMaxSize() before verticalScroll() matters: it hands verticalScroll an
+    // exact (min == max) height constraint, and verticalScroll only relaxes the
+    // max side for the content below it, leaving min == viewport height. That
+    // forces this Box to be at least a full screen tall even when the Column is
+    // short, which is what lets Alignment.Center actually center it — without
+    // the scroll modifier's min-height side effect there'd be no slack to
+    // center within. When the Column is taller than the viewport (e.g. a long
+    // changelog), the same relaxed max lets it grow past one screen and the
+    // scroll clips/pans over it instead of Compose silently clipping content.
     Box(
-        modifier = Modifier.fillMaxSize().background(colors.backgroundDark),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.backgroundDark)
+            .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -91,8 +105,9 @@ fun ForceUpdateScreen(
             }
 
             // Sem storeUrl nao ha para onde mandar o usuario. Um botao que nao
-            // faz nada e pior que nenhum botao.
-            if (update.storeUrl != null) {
+            // faz nada e pior que nenhum botao — e uma URL em branco e tao
+            // inutil quanto nenhuma URL, entao trata os dois casos como ausentes.
+            if (!update.storeUrl.isNullOrBlank()) {
                 Button(
                     onClick = onUpdateClick,
                     shape = RoundedCornerShape(6.dp),
