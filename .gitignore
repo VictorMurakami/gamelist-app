@@ -30,3 +30,6 @@ vendor/
 
 # Planos de implementacao (locais, nao versionados)
 docs/superpowers/plans/
+
+# Workspace do SDD (scratch local)
+.superpowers/
