@@ -13,6 +13,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -61,10 +62,12 @@ class AppConfigRepositoryTest {
         body: String? = null,
         status: HttpStatusCode = HttpStatusCode.OK,
         failWith: Throwable? = null,
+        delayMs: Long? = null,
     ): AppConfigRepository {
         val engine = MockEngine(MockEngineConfig().apply {
             dispatcher = StandardTestDispatcher(testScheduler)
             addHandler {
+                delayMs?.let { delay(it) }
                 if (failWith != null) throw failWith
                 respond(
                     content = body.orEmpty(),
@@ -133,6 +136,31 @@ class AppConfigRepositoryTest {
         val state = repository(failWith = RuntimeException("network down")).load("en")
 
         assertEquals(UpdateStatus.FORCED, state.update.status)
+    }
+
+    @Test
+    fun timesOutAndFallsBackToCacheWhenBackendHangs() = runTest {
+        // Cache primed from a healthy fetch, exactly like a previously-working
+        // app before the backend goes dark.
+        repository(json("forced")).load("en")
+
+        // Backend accepts the connection but hangs well past FETCH_TIMEOUT_MS
+        // (2_500ms in AppConfigRepository) -- rides runTest's virtual clock,
+        // no real 60s wait. The body below must never actually be delivered.
+        val state = repository(body = json("none"), delayMs = 60_000).load("en")
+
+        // Falls back to the cached FORCED state, not the hung "none" response --
+        // proves the cache read stays outside withTimeoutOrNull's cancelled scope.
+        assertEquals(UpdateStatus.FORCED, state.update.status)
+    }
+
+    @Test
+    fun timesOutAndReturnsEmptyStateWhenBackendHangsWithNoCache() = runTest {
+        // Same hang, but no prior cache to fall back to.
+        val state = repository(body = json("forced"), delayMs = 60_000).load("en")
+
+        assertEquals(UpdateStatus.NONE, state.update.status)
+        assertFalse(state.maintenance.active)
     }
 
     @Test
