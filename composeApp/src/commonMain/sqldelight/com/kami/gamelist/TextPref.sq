@@ -9,5 +9,8 @@ SELECT value FROM TextPrefEntity WHERE pref_key = ?;
 upsert:
 INSERT OR REPLACE INTO TextPrefEntity(pref_key, value) VALUES (?, ?);
 
+setIfAbsent:
+INSERT OR IGNORE INTO TextPrefEntity(pref_key, value) VALUES (?, ?);
+
 delete:
 DELETE FROM TextPrefEntity WHERE pref_key = ?;
