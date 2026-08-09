@@ -44,4 +44,27 @@ object HttpClientFactory {
             level = LogLevel.HEADERS
         }
     }
+
+    fun createBackend(): HttpClient = HttpClient {
+        // 400 e 429 viram excecao em vez de tentarem desserializar um corpo
+        // de erro como AppConfigDto. O repository trata ambos como falha.
+        expectSuccess = true
+
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+            })
+        }
+
+        install(HttpTimeout) {
+            // Curto de proposito: o splash nao pode ficar preso esperando o backend.
+            requestTimeoutMillis = 3_000
+            connectTimeoutMillis = 3_000
+        }
+
+        install(Logging) {
+            level = LogLevel.HEADERS
+        }
+    }
 }
