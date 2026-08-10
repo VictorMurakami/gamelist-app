@@ -18,6 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kami.gamelist.core.config.AppConfigRepository
+import com.kami.gamelist.core.config.AppConfigState
+import com.kami.gamelist.core.config.UpdateStatus
+import com.kami.gamelist.core.platform.UrlOpener
 import com.kami.gamelist.core.ui.components.AnimatedSplashScreen
 import com.kami.gamelist.core.ui.components.AppSettingsState
 import com.kami.gamelist.core.ui.components.GameToastHost
@@ -38,22 +42,45 @@ import com.kami.gamelist.data.model.ListType
 import com.kami.gamelist.data.repository.GameRepository
 import com.kami.gamelist.data.repository.SyncState
 import com.kami.gamelist.data.repository.UserRepository
+import com.kami.gamelist.feature.gate.ForceUpdateScreen
+import com.kami.gamelist.feature.gate.MaintenanceScreen
+import com.kami.gamelist.feature.gate.UpdateAvailableSheet
+import com.kami.gamelist.feature.gate.shouldScheduleUpdatePrompt
 import com.kami.gamelist.feature.navigation.AppNavigator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
+
+// AppConfigRepository.load() se limita internamente (ver FETCH_TIMEOUT_MS
+// nessa classe) a um teto menor que este, entao ele sempre resolve — com um
+// resultado real ou EMPTY — antes deste teto poder disparar, mesmo contra um
+// host que aceita a conexao e nunca responde. Ver o comentario ao lado de
+// FETCH_TIMEOUT_MS para o porque desse limite viver no repository e nao aqui.
+private const val SPLASH_CEILING_MS = 3_000L
 
 @Composable
 fun App() {
     val userRepository = koinInject<UserRepository>()
     val gameRepository = koinInject<GameRepository>()
     val cacheManager = koinInject<CacheManager>()
+    val appConfigRepository = koinInject<AppConfigRepository>()
+    val urlOpener = koinInject<UrlOpener>()
     val toastState = rememberGameToastState()
     val settingsState = remember { AppSettingsState(cacheManager) }
     val userPreferencesState = remember { UserPreferencesState(cacheManager) }
     val scrollToTopState = remember { ScrollToTopState() }
     var showOnboarding by remember { mutableStateOf(false) }
+    // Vira true uma unica vez, logo depois que o efeito abaixo decide
+    // showOnboarding — nao apos refreshGames(). Existe para que o efeito de
+    // aviso de atualizacao mais abaixo saiba quando showOnboarding ja e
+    // confiavel, em vez de arriscar ler um valor ainda nao decidido (ver
+    // shouldScheduleUpdatePrompt).
+    var onboardingDecided by remember { mutableStateOf(false) }
+    var showUpdatePrompt by remember { mutableStateOf(false) }
     var splashReady by remember { mutableStateOf(false) }
+    // null enquanto a config ainda nao chegou (nem do backend, nem do cache,
+    // nem do EMPTY de fallback) — usado so para segurar o splash mais abaixo.
+    var appConfig by remember { mutableStateOf<AppConfigState?>(null) }
 
     val syncState by gameRepository.syncState.collectAsState()
 
@@ -73,19 +100,59 @@ fun App() {
         if (!cacheManager.isOnboardingSeen()) {
             showOnboarding = true
         }
+        onboardingDecided = true
 
         gameRepository.refreshGames()
     }
 
-    LaunchedEffect(syncState) {
-        if (syncState is SyncState.Synced || syncState is SyncState.SyncFailed) {
+    // Independente do LaunchedEffect acima: carrega em paralelo com o
+    // refreshGames(), nao depois dele, senao a latencia do backend de config
+    // somaria a da FreeToGame no splash.
+    LaunchedEffect(Unit) {
+        val lang = when (settingsState.language) {
+            Language.PT_BR -> "pt"
+            Language.EN -> "en"
+        }
+        appConfig = appConfigRepository.load(lang)
+    }
+
+    // Chave appConfig + onboardingDecided (nao showOnboarding): reavalia toda
+    // vez que a config chega OU que a decisao de onboarding fica pronta,
+    // qualquer que seja a ordem em que os dois LaunchedEffect(Unit) acima
+    // terminam. So agenda o aviso quando onboardingDecided ja e true, entao
+    // showOnboarding sempre reflete seu valor final antes de ser lido aqui —
+    // ver shouldScheduleUpdatePrompt para o porque disso importar num
+    // instalacao nova (onboarding precisa de 3 escritas locais antes de
+    // decidir, e pode perder a corrida contra a config que so precisa de uma
+    // chamada de rede). Nao esta na chave showOnboarding: reagir a ele virar
+    // false ao dispensar o onboarding faria o aviso aparecer na mesma
+    // abertura, nao na proxima.
+    LaunchedEffect(appConfig, onboardingDecided) {
+        if (shouldScheduleUpdatePrompt(
+                onboardingDecided = onboardingDecided,
+                onboardingShown = showOnboarding,
+                appConfig = appConfig,
+                isVersionDismissed = cacheManager::isUpdateDismissed,
+            )
+        ) {
+            showUpdatePrompt = true
+        }
+    }
+
+    LaunchedEffect(syncState, appConfig) {
+        // O gate so pode decidir com a config resolvida (sucesso, cache ou
+        // EMPTY) — liberar o splash antes disso mostraria a Home por um
+        // instante antes de jogar o usuario numa tela de bloqueio.
+        if ((syncState is SyncState.Synced || syncState is SyncState.SyncFailed) && appConfig != null) {
             delay(600)
             splashReady = true
         }
     }
 
     LaunchedEffect(Unit) {
-        delay(3000)
+        // Teto de tempo: um backend lento (de jogos ou de config) nao pode
+        // prender o usuario no splash indefinidamente.
+        delay(SPLASH_CEILING_MS)
         splashReady = true
     }
 
@@ -101,8 +168,23 @@ fun App() {
             LocalScrollToTop provides scrollToTopState,
             LocalStrings provides strings,
         ) {
+            // Ordem importa: manutencao e temporaria, versao obsoleta nao.
+            // Um usuario preso numa versao morta durante uma manutencao
+            // precisa ver a tela de atualizar, que e a unica das duas que
+            // ele pode resolver.
+            val config = appConfig
+            val isForcedUpdate = config?.update?.status == UpdateStatus.FORCED
+            val isMaintenance = !isForcedUpdate && config?.maintenance?.active == true
+
             Box(modifier = Modifier.fillMaxSize()) {
-                AppNavigator()
+                when {
+                    isForcedUpdate -> ForceUpdateScreen(
+                        update = config!!.update,
+                        onUpdateClick = { config.update.storeUrl?.let(urlOpener::open) },
+                    )
+                    isMaintenance -> MaintenanceScreen(config!!.maintenance)
+                    else -> AppNavigator()
+                }
                 GameToastHost(
                     state = toastState,
                     modifier = Modifier
@@ -110,11 +192,22 @@ fun App() {
                         .padding(bottom = 96.dp)
                 )
 
-                if (showOnboarding) {
+                if (showOnboarding && !isForcedUpdate && !isMaintenance) {
                     OnboardingSheet(
                         onDismiss = {
                             showOnboarding = false
                             cacheManager.markOnboardingSeen()
+                        }
+                    )
+                }
+
+                if (showUpdatePrompt && !showOnboarding && !isForcedUpdate && !isMaintenance) {
+                    UpdateAvailableSheet(
+                        update = config!!.update,
+                        onUpdate = { config.update.storeUrl?.let(urlOpener::open) },
+                        onDismiss = {
+                            showUpdatePrompt = false
+                            config.update.latestVersion?.let(cacheManager::markUpdateDismissed)
                         }
                     )
                 }

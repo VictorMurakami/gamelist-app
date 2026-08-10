@@ -18,6 +18,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Mesma verificacao do pr-check. Aqui importa mais: um release com
+      # migration faltando chega em instalacao existente de usuario real.
+      - name: Verify SQLDelight migrations
+        run: ./gradlew :composeApp:verifySqlDelightMigration
+
       - name: Run tests
         run: ./gradlew :composeApp:allTests
 

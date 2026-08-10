@@ -44,4 +44,32 @@ object HttpClientFactory {
             level = LogLevel.HEADERS
         }
     }
+
+    fun createBackend(): HttpClient = HttpClient {
+        // 400 e 429 viram excecao em vez de tentarem desserializar um corpo
+        // de erro como AppConfigDto. O repository trata ambos como falha.
+        expectSuccess = true
+
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+            })
+        }
+
+        install(HttpTimeout) {
+            // Quem realmente limita a espera do splash e o
+            // withTimeoutOrNull(FETCH_TIMEOUT_MS = 2_500) em
+            // AppConfigRepository.load(), que sempre dispara primeiro. Este
+            // timeout do Ktor e so um backstop abaixo dele, para o caso (fora
+            // do controle do repository) de a conexao nem ser aceita/recusada
+            // a tempo por outros motivos de rede.
+            requestTimeoutMillis = 3_000
+            connectTimeoutMillis = 3_000
+        }
+
+        install(Logging) {
+            level = LogLevel.HEADERS
+        }
+    }
 }

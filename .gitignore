@@ -27,3 +27,9 @@ fastlane/test_output/
 # Ruby
 vendor/
 .bundle/
+
+# Planos de implementacao (locais, nao versionados)
+docs/superpowers/plans/
+
+# Workspace do SDD (scratch local)
+.superpowers/

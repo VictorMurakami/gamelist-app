@@ -139,6 +139,17 @@ data class AppStrings(
     val platformAll: String,
     val platformPC: String,
     val platformBrowser: String,
+
+    // Gate
+    val updateRequiredTitle: String,
+    val updateRequiredMessage: String,
+    val updateNow: String,
+    val maintenanceTitle: String,
+    val maintenanceDefaultMessage: String,
+    val updateAvailableTitle: String,
+    val updateAvailableMessage: String,
+    val later: String,
+    val whatsNew: String,
 ) {
     fun freeToPlayCount(count: Int) = "$count $freeCatalog"
     fun favoritesCount(count: Int) = "$favorites ($count)"
@@ -283,6 +294,16 @@ data class AppStrings(
             platformAll = "All",
             platformPC = "PC",
             platformBrowser = "Browser",
+
+            updateRequiredTitle = "Update required",
+            updateRequiredMessage = "This version is no longer supported. Update to keep playing.",
+            updateNow = "Update Now",
+            maintenanceTitle = "Under maintenance",
+            maintenanceDefaultMessage = "We'll be back shortly. Thanks for your patience.",
+            updateAvailableTitle = "Update available",
+            updateAvailableMessage = "A new version is ready.",
+            later = "Later",
+            whatsNew = "What's New",
         )
 
         val PtBr = AppStrings(
@@ -411,6 +432,16 @@ data class AppStrings(
             platformAll = "Todos",
             platformPC = "PC",
             platformBrowser = "Navegador",
+
+            updateRequiredTitle = "Atualização necessária",
+            updateRequiredMessage = "Esta versão não é mais suportada. Atualize para continuar jogando.",
+            updateNow = "Atualizar Agora",
+            maintenanceTitle = "Em manutenção",
+            maintenanceDefaultMessage = "Voltamos em breve. Obrigado pela paciência.",
+            updateAvailableTitle = "Atualização disponível",
+            updateAvailableMessage = "Uma nova versão está pronta.",
+            later = "Depois",
+            whatsNew = "Novidades",
         )
     }
 }

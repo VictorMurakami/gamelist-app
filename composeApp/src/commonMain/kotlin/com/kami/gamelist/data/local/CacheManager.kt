@@ -13,6 +13,7 @@ class CacheManager(private val database: GameListDatabase) {
         private const val ONBOARDING_SEEN_KEY = "onboarding_seen"
         private const val POPULAR_COUNT_KEY = "popular_count"
         private const val POPULAR_PREFIX = "popular_"
+        private const val UPDATE_DISMISSED_PREFIX = "update_dismissed_"
 
         fun gameDetailKey(id: Int) = "game_detail_$id"
     }
@@ -43,6 +44,15 @@ class CacheManager(private val database: GameListDatabase) {
 
     fun resetOnboarding() {
         queries.delete(ONBOARDING_SEEN_KEY)
+    }
+
+    // A chave inclui a versao, entao dispensar 2.0.0 nao silencia um 3.0.0
+    // futuro: cada versao recomendada precisa da sua propria dispensa.
+    fun isUpdateDismissed(version: String): Boolean =
+        queries.getLastFetched("$UPDATE_DISMISSED_PREFIX$version").executeAsOneOrNull() != null
+
+    fun markUpdateDismissed(version: String) {
+        queries.upsert("$UPDATE_DISMISSED_PREFIX$version", Clock.System.now().toEpochMilliseconds())
     }
 
     fun getPreference(key: String, default: Int = 0): Int {

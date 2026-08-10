@@ -98,6 +98,19 @@ kotlin {
     }
 }
 
+// versionName eh enviado verbatim ao backend de app-config
+// (AppInfo.android.kt) e comparado la com PEP 440. Um valor fora de
+// MAJOR.MINOR.PATCH quebra dos dois lados: (a) qualquer sufixo/formato que o
+// PEP 440 nao reconheca faz o resolver do backend responder "nao consegui
+// parsear" e cair silenciosamente em status=none, desligando o gate de force
+// update sem nenhum sinal; (b) um sufixo de pre-release que o PEP 440
+// reconhece (ex.: "1.0.0-beta" -> "1.0.0b0") normaliza para ABAIXO da versao
+// minima suportada, e o backend responde forced legitimamente — a
+// ForceUpdateScreen nao tem saida e manda pra uma loja onde esse build nao
+// existe, brickando qualquer instalacao de teste interno. Este check fecha as
+// duas pontas na fonte, antes de qualquer build chegar perto de um device.
+val versionNamePattern = Regex("""^\d+\.\d+\.\d+$""")
+
 android {
     namespace = "com.kami.gamelist"
     compileSdk = 35
@@ -108,6 +121,22 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
+
+        val currentVersionName = versionName
+        require(currentVersionName != null && versionNamePattern.matches(currentVersionName)) {
+            "versionName '$currentVersionName' precisa ser MAJOR.MINOR.PATCH " +
+                "(ex.: 1.0.0), sem sufixo de pre-release. O backend de " +
+                "app-config compara essa string com PEP 440: um sufixo " +
+                "desconhecido cai em status=none (gate desligado em " +
+                "silencio) e um sufixo de pre-release reconhecido normaliza " +
+                "pra abaixo da versao minima e trava o app numa " +
+                "ForceUpdateScreen sem saida, apontando pra uma loja onde " +
+                "esse build nao existe."
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {
@@ -121,6 +150,15 @@ sqldelight {
         create("GameListDatabase") {
             packageName.set("com.kami.gamelist.db")
             dialect(libs.sqldelight.dialect)
+            // Task 1 desta fase criou o padrao de migracao numerada (1.sqm).
+            // Sem isso, uma alteracao num .sq sem o .sqm correspondente
+            // compila, passa nos 72 testes e so aparece como "no such
+            // column" em runtime, num install que passou pela migracao. Isso
+            // faz o verifySqlDelightMigration (parte de `check`) recriar o
+            // schema aplicando as .sqm em ordem a partir do zero e comparar
+            // com o schema atual dos .sq — falha se divergirem.
+            verifyMigrations.set(true)
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
         }
     }
 }
