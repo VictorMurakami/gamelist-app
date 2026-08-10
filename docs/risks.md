@@ -281,6 +281,40 @@ ficam documentados no relatório da fase, em `docs/reviews/`.
   `versionName = "1.0.0"` do Gradle — vem da mesma fonte) fecha a metade que é
   responsabilidade do cliente.
 
+## Um `versionName` de pre-release trava o app numa tela sem saida (fail-closed)
+
+- **Fase de origem:** 2
+- **Descrição:** o risco acima ("Sem logging no cliente") registra a direção
+  fail-*open*: `versionName` fora do formato semver desliga o force update em
+  silêncio. Existe a direção oposta, mais grave, e ela não estava registrada.
+  `AppInfo.android.kt:7` envia `BuildConfig.VERSION_NAME` verbatim; o backend
+  normaliza essa string com PEP 440 antes de comparar com `min_supported`.
+  Verificado contra o stack, com `min_supported = latest_version = 1.0.0` para
+  `android`:
+  ```
+  version=1.0.0-beta  -> status=forced
+  version=1.0.0-rc1   -> status=forced
+  version=1.0.0_rc    -> status=forced
+  version=1.0.0       -> status=none
+  ```
+  PEP 440 normaliza `1.0.0-beta` para `1.0.0b0`, que fica **abaixo** de
+  `1.0.0` — o backend responde `forced` legitimamente, não é um bug do
+  servidor. O cliente renderiza a `ForceUpdateScreen`, que não tem botão de
+  voltar por construção, e cujo único botão abre uma loja onde esse build não
+  existe. Qualquer tester interno rodando um `versionName` de pre-release fica
+  brickado no primeiro launch, sem escape dentro do app.
+- **Gatilho:** o primeiro build de beta/RC interno com um `versionName`
+  contendo sufixo de pre-release — não precisa de release pública, um único
+  APK de teste interno já reproduz.
+- **Mitigação:** implementada nesta wave — um `require()` em
+  `composeApp/build.gradle.kts` que falha o build quando `versionName` não
+  casa com `^\d+\.\d+\.\d+$`. Esse único check fecha as duas direções ao mesmo
+  tempo: a fail-open (formato que o PEP 440 não reconhece cai em `none`
+  silencioso) e a fail-closed descrita aqui (sufixo de pre-release que o PEP
+  440 reconhece normaliza para abaixo do mínimo e tranca o app). Verificado
+  manualmente: com `versionName = "1.0.0-beta"` o build falha citando este
+  motivo; restaurado para `"1.0.0"` o build volta a passar.
+
 ## Caminho iOS do app-config nunca foi verificado em runtime
 
 - **Fase de origem:** 2
