@@ -303,11 +303,15 @@ ficam documentados no relatório da fase, em `docs/reviews/`.
   deveriam ter visto a tela de bloqueio e não viram?". Na prática: a primeira
   vez que o force update precisar ser usado a sério.
 - **Mitigação:** um `Logger` `expect/actual` fino (logcat/NSLog) com pontos nos
-  caminhos de falha acima, e um crash/analytics reporter na Fase 3. No build,
-  uma validação de que `versionName` casa com `^\d+\.\d+\.\d+$` (e que o
-  `CFBundleShortVersionString` do `iosApp/Info.plist` — hoje `"1.0"`, contra
-  `versionName = "1.0.0"` do Gradle — vem da mesma fonte) fecha a metade que é
-  responsabilidade do cliente.
+  caminhos de falha acima, e um crash/analytics reporter na Fase 3.
+
+  A metade do `versionName` **já está fechada**: `composeApp/build.gradle.kts`
+  falha o build quando ele não casa com `^\d+\.\d+\.\d+$` — ver a entrada
+  "Um `versionName` de pre-release trava o app numa tela sem saída
+  (fail-closed)" abaixo, cuja mitigação é o mesmo guard. O que continua aberto
+  aqui é o logging, e o `CFBundleShortVersionString` do `iosApp/Info.plist`
+  (hoje `"1.0"`, contra `versionName = "1.0.0"` do Gradle), que não tem fonte
+  única com o Gradle e não é coberto por aquele guard.
 
 ## Um `versionName` de pre-release trava o app numa tela sem saida (fail-closed)
 
