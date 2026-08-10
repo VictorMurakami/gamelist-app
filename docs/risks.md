@@ -181,12 +181,33 @@ ficam documentados no relatório da fase, em `docs/reviews/`.
   existentes; o seed dos mesmos dados levou 142 ms, duas ordens de grandeza a
   mais). Nada disso é visível hoje, e nenhuma dessas operações lê mais de uma
   linha.
+
+  **Consequência mais afiada que "é lento":** `deviceIdProvider.deviceId()`
+  (`AppConfigRepository.kt:54`) é chamado *dentro* do `withTimeoutOrNull`, e é
+  uma leitura-depois-escrita **bloqueante** no SQLite sem nenhum ponto de
+  suspensão — logo o timeout não consegue interrompê-la; ele só cancela o
+  `fetch` de rede que vem depois. E `cachedState()` (`:67`) é, por construção
+  da Task 7, chamado *fora* do escopo do timeout, também sem teto algum. Num
+  primeiro launch em device de gama baixa — banco ainda não existe, então
+  entram juntos: criação do arquivo, a migração `1.sqm`, e a escrita do
+  `device_id` gerado, tudo síncrono e na main thread — este é o único caminho
+  que pode empurrar `appConfig` para além do teto de 3 s do splash
+  (`App.kt:59`), **reintroduzindo o flash de Home que a primeira rodada de
+  correção da Task 7 existia para eliminar**: se o teto do splash dispara
+  antes de `appConfig` resolver, `splashReady` vira `true` por conta do
+  `LaunchedEffect(Unit)` de `App.kt:152-157`, que não depende de `appConfig`,
+  e a árvore de composição avalia `AppNavigator()` (o `else` de `App.kt:186`)
+  no mesmo frame em que a config ainda é `null` — exatamente a janela que a
+  checagem de `appConfig != null` em `App.kt:146` foi escrita para fechar.
 - **Gatilho:** quando `TextPrefEntity` deixar de ser "duas chaves pequenas" —
   a Fase 3 põe dado de sessão perto daqui — ou quando o volume gravado por
   `set()` crescer (catálogo de flags grande deixa o JSON da config maior; ver
   o risco de payload por flag no `risks.md` do backend). Também vira visível em
   device de gama baixa com armazenamento cheio, onde um `fsync` custa dezenas de
-  ms. Sinal de alerta prático: StrictMode acusando disk I/O na main thread.
+  ms. Mais direto: qualquer instalação nova (banco inexistente) num device de
+  gama baixa já testa esse caminho hoje, sem precisar de Fase 3 nem de volume
+  maior — é o gatilho mais barato de reproduzir dos dois. Sinal de alerta
+  prático: StrictMode acusando disk I/O na main thread.
 - **Mitigação:** `withContext` para um dispatcher de I/O em volta das partes
   não-suspensas de `load()`, mantendo o `withTimeoutOrNull` só em torno do
   fetch. `Dispatchers.IO` não existe em `commonMain`, então isso custa um
