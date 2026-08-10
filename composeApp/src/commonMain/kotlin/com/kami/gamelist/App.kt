@@ -45,6 +45,7 @@ import com.kami.gamelist.data.repository.UserRepository
 import com.kami.gamelist.feature.gate.ForceUpdateScreen
 import com.kami.gamelist.feature.gate.MaintenanceScreen
 import com.kami.gamelist.feature.gate.UpdateAvailableSheet
+import com.kami.gamelist.feature.gate.shouldScheduleUpdatePrompt
 import com.kami.gamelist.feature.navigation.AppNavigator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -69,6 +70,12 @@ fun App() {
     val userPreferencesState = remember { UserPreferencesState(cacheManager) }
     val scrollToTopState = remember { ScrollToTopState() }
     var showOnboarding by remember { mutableStateOf(false) }
+    // Vira true uma unica vez, logo depois que o efeito abaixo decide
+    // showOnboarding — nao apos refreshGames(). Existe para que o efeito de
+    // aviso de atualizacao mais abaixo saiba quando showOnboarding ja e
+    // confiavel, em vez de arriscar ler um valor ainda nao decidido (ver
+    // shouldScheduleUpdatePrompt).
+    var onboardingDecided by remember { mutableStateOf(false) }
     var showUpdatePrompt by remember { mutableStateOf(false) }
     var splashReady by remember { mutableStateOf(false) }
     // null enquanto a config ainda nao chegou (nem do backend, nem do cache,
@@ -93,6 +100,7 @@ fun App() {
         if (!cacheManager.isOnboardingSeen()) {
             showOnboarding = true
         }
+        onboardingDecided = true
 
         gameRepository.refreshGames()
     }
@@ -108,21 +116,24 @@ fun App() {
         appConfig = appConfigRepository.load(lang)
     }
 
-    // Chave appConfig (nao showOnboarding): dispara uma unica vez quando a
-    // config chega, lendo showOnboarding nesse instante. A checagem local de
-    // onboarding acima e sempre mais rapida que essa carga de rede, entao
-    // showOnboarding ja esta decidido aqui. Se estiver true (onboarding
-    // ativo), o aviso simplesmente nao e agendado nesta sessao — ele nao
-    // reage a um showOnboarding que vira false depois, entao dispensar o
-    // onboarding nao faz o aviso aparecer na mesma abertura; ele espera a
-    // proxima.
-    LaunchedEffect(appConfig) {
-        val config = appConfig ?: return@LaunchedEffect
-        val latestVersion = config.update.latestVersion
-        if (!showOnboarding &&
-            config.update.status == UpdateStatus.RECOMMENDED &&
-            latestVersion != null &&
-            !cacheManager.isUpdateDismissed(latestVersion)
+    // Chave appConfig + onboardingDecided (nao showOnboarding): reavalia toda
+    // vez que a config chega OU que a decisao de onboarding fica pronta,
+    // qualquer que seja a ordem em que os dois LaunchedEffect(Unit) acima
+    // terminam. So agenda o aviso quando onboardingDecided ja e true, entao
+    // showOnboarding sempre reflete seu valor final antes de ser lido aqui —
+    // ver shouldScheduleUpdatePrompt para o porque disso importar num
+    // instalacao nova (onboarding precisa de 3 escritas locais antes de
+    // decidir, e pode perder a corrida contra a config que so precisa de uma
+    // chamada de rede). Nao esta na chave showOnboarding: reagir a ele virar
+    // false ao dispensar o onboarding faria o aviso aparecer na mesma
+    // abertura, nao na proxima.
+    LaunchedEffect(appConfig, onboardingDecided) {
+        if (shouldScheduleUpdatePrompt(
+                onboardingDecided = onboardingDecided,
+                onboardingShown = showOnboarding,
+                appConfig = appConfig,
+                isVersionDismissed = cacheManager::isUpdateDismissed,
+            )
         ) {
             showUpdatePrompt = true
         }
