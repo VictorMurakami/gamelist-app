@@ -357,13 +357,28 @@ ficam documentados no relatório da fase, em `docs/reviews/`.
   se a ATS isenta `localhost` — a documentação e os relatos divergem —, e o
   simulador não foi executado nesta revisão. Registrado como incerteza, não
   como conclusão.
+
+  **Segundo motivo, independente do primeiro:** mesmo que a ATS permita a
+  conexão em claro, hoje não há o que resolver do outro lado. Verificado
+  contra o backend de dev: `?platform=ios&version=1.0&device_id=…&lang=pt`
+  devolve 200 com `update.status: "none"`, `update.latest_version: null` e
+  `update.store_url: null` — o mesmo padrão de "não consegui resolver" descrito
+  no risco de logging acima, porque não existe nenhuma linha de `AppVersion`
+  para `platform="ios"` no banco de dev. Ou seja, o caminho iOS tem duas causas
+  de bloqueio empilhadas e independentes: a ATS pode nem deixar o request
+  sair, e mesmo que saísse, o servidor não tem dado de `AppVersion` para
+  responder um gate de verdade.
 - **Gatilho:** antes da Fase 3, que constrói o login em cima do mesmo cliente e
   do mesmo `issuer`/`client_id` vindos deste endpoint. Se o app-config não chega
   no iOS, o login também não sobe.
 - **Mitigação:** rodar o app no simulador com o backend local e confirmar, com
   o `LogLevel` do Ktor, que a resposta chega; se a ATS bloquear, adicionar
   `NSAllowsLocalNetworking` apenas na configuração de debug. Em release o ponto
-  desaparece junto com o primeiro risco desta lista (HTTPS).
+  desaparece junto com o primeiro risco desta lista (HTTPS). Adicionalmente,
+  antes de qualquer verificação de runtime no simulador fazer sentido, criar a
+  linha de `AppVersion` para `platform="ios"` no backend de dev — sem ela, um
+  teste no simulador não teria contra o que validar o gate, só a
+  conectividade.
 
 ## Falha no onboarding suprime o aviso de atualização recomendada, em silêncio
 
