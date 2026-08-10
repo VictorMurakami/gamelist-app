@@ -150,6 +150,15 @@ sqldelight {
         create("GameListDatabase") {
             packageName.set("com.kami.gamelist.db")
             dialect(libs.sqldelight.dialect)
+            // Task 1 desta fase criou o padrao de migracao numerada (1.sqm).
+            // Sem isso, uma alteracao num .sq sem o .sqm correspondente
+            // compila, passa nos 72 testes e so aparece como "no such
+            // column" em runtime, num install que passou pela migracao. Isso
+            // faz o verifySqlDelightMigration (parte de `check`) recriar o
+            // schema aplicando as .sqm em ordem a partir do zero e comparar
+            // com o schema atual dos .sq — falha se divergirem.
+            verifyMigrations.set(true)
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
         }
     }
 }
