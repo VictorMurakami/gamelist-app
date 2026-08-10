@@ -364,3 +364,63 @@ ficam documentados no relatório da fase, em `docs/reviews/`.
   o `LogLevel` do Ktor, que a resposta chega; se a ATS bloquear, adicionar
   `NSAllowsLocalNetworking` apenas na configuração de debug. Em release o ponto
   desaparece junto com o primeiro risco desta lista (HTTPS).
+
+## Falha no onboarding suprime o aviso de atualização recomendada, em silêncio
+
+- **Fase de origem:** 2
+- **Descrição:** `App.kt:92-106` só chega a `onboardingDecided = true`
+  (`:103`) depois que `observeLists().first()` (`:93`) e, se a lista de listas
+  vier vazia, as três chamadas a `createList()` (`:95-97`) completarem sem
+  lançar. Se essa coroutine morrer no meio — banco bloqueado, disco cheio,
+  qualquer exceção não tratada nesse trecho —, `onboardingDecided` fica `false`
+  pelo resto do launch. `shouldScheduleUpdatePrompt` (usado no
+  `LaunchedEffect(appConfig, onboardingDecided)` de `App.kt:130-140`) exige
+  `onboardingDecided == true` para agendar `showUpdatePrompt`, então a
+  `UpdateAvailableSheet` de update recomendado simplesmente não aparece nessa
+  abertura — sem erro visível, sem log, indistinguível de "não havia
+  atualização recomendada". O gate bloqueante (force update / manutenção) não
+  é afetado: `App.kt:171-187` lê `appConfig` diretamente, sem depender de
+  `onboardingDecided`. O alcance é limitado por dois motivos: é *bounded* (não
+  se acumula — cada abertura tenta de novo do zero) e *escopado a uma única
+  abertura* (na próxima vez que o app abrir, o `LaunchedEffect(Unit)` roda de
+  novo e, se as escritas de lista tiverem sucesso dessa vez, o aviso volta a
+  poder aparecer).
+- **Gatilho:** qualquer condição que faça `observeLists().first()` ou um dos
+  três `createList()` lançar — banco corrompido, storage cheio, ou uma
+  migração futura que quebre essas queries. Hoje é hipotético; a fase de
+  origem não introduziu nenhuma dessas falhas, só a dependência entre os dois
+  `LaunchedEffect`.
+- **Mitigação:** não fazer agora — registrar. Se algum dia isso incomodar de
+  verdade, a correção é desacoplar `onboardingDecided` de precisar das três
+  escritas terem sucesso (ex.: usar `runCatching` em volta do bloco de seed de
+  listas, ou mover a decisão de "onboarding visto" para antes do seed), mas
+  isso é trabalho de fluxo, não de uma linha.
+
+## `FeatureFlags` e `AppConfigState` não têm caminho de exposição ao resto do app
+
+- **Fase de origem:** 2
+- **Descrição:** o objetivo declarado desta fase inclui "expor as feature
+  flags ao resto do app", e o plano promete que a Fase 3 vai consumir
+  `AppConfigState.issuer` e `.clientId` para configurar o cliente OIDC. Hoje
+  nenhum dos dois é alcançável fora de `App()`: `FeatureFlags`
+  (`FeatureFlags.kt`) não tem nenhum consumidor em código de produção — a
+  única referência no projeto é em teste
+  (`AppConfigRepositoryTest.kt:283`) — e não está registrada em nenhum módulo
+  Koin (`RepositoryModule.kt` não a expõe). `AppConfigState` só existe como a
+  `var appConfig` local de `App.kt:83`, nunca vira `CompositionLocal`, nunca é
+  retida no `AppConfigRepository` além do cache em disco já discutido em outro
+  risco desta lista. Ou seja: a única forma de obter `issuer`/`clientId` (ou
+  qualquer flag) fora de `App()` hoje é chamar `AppConfigRepository.load()` de
+  novo — um segundo round-trip HTTP inteiro, mais uma segunda escrita no
+  cache, só para ler um valor que o primeiro `load()` já resolveu.
+- **Gatilho:** o início da Fase 3, no momento em que o fluxo de login precisar
+  do `issuer`/`client_id` fora da árvore de composição de `App()` — que é
+  exatamente o que o plano descreve.
+- **Mitigação:** expor o resultado de `load()` por um canal que sobreviva a
+  `App()`: um `CompositionLocal` populado no mesmo ponto em que `appConfig` é
+  setado hoje (`App.kt:116`), ou — mais robusto para código fora de
+  composição, como um `AuthRepository` da Fase 3 — um `StateFlow<AppConfigState?>`
+  exposto pelo próprio `AppConfigRepository`, atualizado dentro de `load()` em
+  vez de só retornado. A segunda opção evita o segundo round-trip HTTP e dá a
+  qualquer consumidor Koin acesso ao mesmo estado sem depender da árvore de
+  Compose.
