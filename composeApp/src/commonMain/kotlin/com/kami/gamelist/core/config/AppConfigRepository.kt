@@ -3,6 +3,8 @@ package com.kami.gamelist.core.config
 import com.kami.gamelist.data.local.TextPrefDataSource
 import com.kami.gamelist.data.remote.dto.AppConfigDto
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 class AppConfigRepository(
@@ -56,16 +58,40 @@ class AppConfigRepository(
         }
 
         if (fetched != null) {
-            runCatching { textPrefs.set(CACHE_KEY, json.encodeToString(fetched)) }
+            runCatching {
+                textPrefs.set(CACHE_KEY, json.encodeToString(CachedConfig(appInfo.version, fetched)))
+            }
             return fetched.toState()
         }
 
         return cachedState() ?: AppConfigState.EMPTY
     }
 
+    /**
+     * Envelope do cache: a resposta guardada mais a versao do app que a
+     * produziu.
+     *
+     * A versao nao e metadado decorativo — a resposta do backend e uma funcao
+     * da versao que perguntou. Uma resposta `forced` obtida em 1.0.0 nao diz
+     * nada sobre 2.0.0; reaproveita-la depois de o usuario atualizar tranca
+     * um app que ja esta em dia numa tela sem saida, cujo unico botao leva a
+     * uma loja onde nao ha o que baixar. Ver
+     * `discardsCacheFromAnotherAppVersion` em AppConfigRepositoryTest.
+     */
+    @Serializable
+    private data class CachedConfig(
+        @SerialName("app_version") val appVersion: String,
+        val config: AppConfigDto,
+    )
+
     private fun cachedState(): AppConfigState? {
         val raw = textPrefs.get(CACHE_KEY) ?: return null
-        return runCatching { json.decodeFromString<AppConfigDto>(raw).toState() }.getOrNull()
+        // Cache de formato antigo (sem envelope) ou corrompido cai aqui e vira
+        // null, que o chamador trata como "sem cache" — o mesmo caminho de uma
+        // instalacao nova, nunca uma excecao.
+        val cached = runCatching { json.decodeFromString<CachedConfig>(raw) }.getOrNull() ?: return null
+        if (cached.appVersion != appInfo.version) return null
+        return cached.config.toState()
     }
 }
 

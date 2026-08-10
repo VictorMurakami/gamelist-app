@@ -63,6 +63,7 @@ class AppConfigRepositoryTest {
         status: HttpStatusCode = HttpStatusCode.OK,
         failWith: Throwable? = null,
         delayMs: Long? = null,
+        version: String = appInfo.version,
     ): AppConfigRepository {
         val engine = MockEngine(MockEngineConfig().apply {
             dispatcher = StandardTestDispatcher(testScheduler)
@@ -88,7 +89,7 @@ class AppConfigRepositoryTest {
             api = AppConfigApi(client),
             textPrefs = textPrefs,
             deviceIdProvider = DeviceIdProvider(textPrefs),
-            appInfo = appInfo,
+            appInfo = appInfo.copy(version = version),
         )
     }
 
@@ -223,6 +224,33 @@ class AppConfigRepositoryTest {
         val state = repository(body = body).load("en")
 
         assertEquals(UpdateStatus.NONE, state.update.status)
+    }
+
+    @Test
+    fun discardsCacheFromAnotherAppVersion() = runTest {
+        // Sequencia real: em 1.0.0 o backend responde forced e o app cacheia.
+        // O usuario faz o que a tela mandou e atualiza para 2.0.0. Na primeira
+        // abertura depois disso ele esta sem rede (metro, aviao, roaming).
+        repository(json("forced"), version = "1.0.0").load("en")
+
+        val state = repository(failWith = RuntimeException("offline"), version = "2.0.0").load("en")
+
+        // Sem esta checagem o app reaplica o forced de 1.0.0 e tranca um
+        // usuario ja atualizado numa tela sem saida, cujo unico botao leva a
+        // uma loja onde nao ha o que baixar. Sem rede, so a proxima conexao
+        // resolveria.
+        assertEquals(UpdateStatus.NONE, state.update.status)
+    }
+
+    @Test
+    fun keepsCacheForTheSameAppVersion() = runTest {
+        // Contraprova do teste acima: o descarte e por versao diferente, nao um
+        // "nunca usa o cache" que tornaria o fallback offline inutil.
+        repository(json("forced"), version = "1.0.0").load("en")
+
+        val state = repository(failWith = RuntimeException("offline"), version = "1.0.0").load("en")
+
+        assertEquals(UpdateStatus.FORCED, state.update.status)
     }
 
     @Test
