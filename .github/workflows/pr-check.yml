@@ -17,6 +17,13 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Pega uma mudanca de .sq sem o .sqm correspondente. Sem isso, a falta de
+      # migration compila, passa nos testes, e so aparece em runtime como
+      # "no such column" — ou, quando a mudanca e de coluna, como perda
+      # silenciosa dos dados do usuario numa instalacao ja existente.
+      - name: Verify SQLDelight migrations
+        run: ./gradlew :composeApp:verifySqlDelightMigration
+
       - name: Run tests
         run: ./gradlew :composeApp:testDebugUnitTest
 
