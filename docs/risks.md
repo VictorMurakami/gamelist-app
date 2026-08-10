@@ -267,10 +267,17 @@ ficam documentados no relatório da fase, em `docs/reviews/`.
   encontra app para o intent (`UrlOpener.kt:12`, `runCatching` descartado).
   Somam-se a isso duas degradações silenciosas de fora do app: o backend
   responde `status: none` quando não consegue parsear a `version` — verificado
-  contra o stack, `?platform=android&version=v1.0.0` devolveu 200 com
-  `"status":"none"` — e responde 400 quando a `version` passa de 20 caracteres
-  (`serializers.py:12`), que no cliente também vira `EMPTY`. Um `versionName`
-  publicado fora do formato semver desliga o force update sem que nada acuse.
+  contra o stack, `?platform=android&version=notaversion` devolveu 200 com
+  `"status":"none"` e `"latest_version":null`. O `null` é o que distingue essa
+  degradação de um `none` legítimo: `?platform=android&version=v1.0.0` também
+  devolve `status: none`, mas com `"latest_version":"1.0.0"` — o PEP 440 aceita
+  o prefixo `v`, então essa versão parseou normalmente e simplesmente não está
+  abaixo de `min_supported`; não é o caminho de falha de parse. `null` só
+  aparece na branch de `resolve_update` que trata o parse como fracassado. A
+  segunda degradação: o backend responde 400 quando a `version` passa de 20
+  caracteres (`serializers.py:12`), que no cliente também vira `EMPTY`. Um
+  `versionName` publicado fora do formato semver desliga o force update sem
+  que nada acuse.
 - **Gatilho:** o primeiro incidente em que a pergunta for "quantos usuários
   deveriam ter visto a tela de bloqueio e não viram?". Na prática: a primeira
   vez que o force update precisar ser usado a sério.
